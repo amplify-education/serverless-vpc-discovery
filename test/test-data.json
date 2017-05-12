@@ -1,0 +1,48 @@
+{
+  "Vpcs": [
+    {
+      "VpcId": "vpc-test"
+    }
+  ],
+  "Subnets": [
+    {
+      "SubnetId": "subnet-test-1",
+      "State": "available",
+      "VpcId": "vpc-test",
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "test_subnet_1"
+        }
+      ]
+    },
+    {
+      "SubnetId": "subnet-test-2",
+      "State": "available",
+      "VpcId": "vpc-test",
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "test_subnet_2"
+        }
+      ]
+    },
+    {
+      "SubnetId": "subnet-test-3",
+      "State": "available",
+      "VpcId": "vpc-test",
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "test_subnet_3"
+        }
+      ]
+    }
+  ],
+  "SecurityGroups": [
+    {
+      "GroupId": "sg-test",
+      "GroupName": "test_group_1"
+    }
+  ]
+}

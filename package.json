@@ -1,0 +1,47 @@
+{
+  "name": "serverless-vpc-discovery",
+  "version": "1.0.4",
+  "engines": {
+    "node": ">=4.0"
+  },
+  "description": "Serverless Plugin to modify VPC values",
+  "author": "Amplify Education Inc",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/amplify-education/serverless-vpc-discovery"
+  },
+  "keywords": [
+    "serverless discovery VPC",
+    "serverless plugins",
+    "api gateway",
+    "lambda",
+    "aws",
+    "VPC",
+    "aws lambda",
+    "amazon",
+    "amazon web services",
+    "serverless.com"
+  ],
+  "main": "index.js",
+  "bin": {},
+  "scripts": {
+    "test": "node ./node_modules/istanbul/lib/cli.js cover _mocha -- -R spec && node ./node_modules/istanbul/lib/cli.js check-coverage --line 70 coverage/coverage.json",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "aws-sdk-mock": "^1.6.1",
+    "chai": "^3.5.0",
+    "eslint": "^3.18.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^4.0.0",
+    "eslint-plugin-react": "^6.10.3",
+    "istanbul": "^0.4.5",
+    "mocha": "^2.2.5"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.2.33",
+    "underscore": "^1.8.3"
+  }
+}
