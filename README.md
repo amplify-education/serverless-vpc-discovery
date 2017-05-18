@@ -1,4 +1,8 @@
 # serverless-vpc-discovery
+[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com)
+[![Build Status](https://travis-ci.org/amplify-education/serverless-vpc-discovery.svg?branch=master)](https://travis-ci.org/amplify-education/serverless-vpc-discovery)
+[![npm version](https://badge.fury.io/js/serverless-vpc-discovery.svg)](https://badge.fury.io/js/serverless-vpc-discovery)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/amplify-education/serverless-vpc-discovery/master/LICENSE)
 
 The vpc discovery plugin takes the given vpc, subnet, and security group names in the serverless file to setup the vpc configuration for the lambda.
 
