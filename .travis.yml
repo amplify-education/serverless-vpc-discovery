@@ -1,18 +1,16 @@
 language: node_js
-
 node_js:
-  - "7.7.1"
-
+- 7.7.1
 install:
-  - npm install
-
+- npm install
 script:
-  - npm run lint
-  - bash test/versionCheck.sh $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST
-  - npm test
-
+- npm run lint
+- bash test/versionCheck.sh $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST
+- npm test
 deploy:
   provider: npm
-  api_key: "API KEY HERE"
+  email: astronauts.core@amplify.com
+  api_key:
+    secure: TfPUWCPW54T5W9RS0qiVi320gBVYOGRYgTIOzcNGRW0dvwRS03RPL9OMd0CA+jqe3hSZidbG3r6EJjrpT5WIByvuJbfJ8mksrj9wFGlNaHXdOEAR0/vfIaqEXwnZCwTSw0AMLlhCgXnOkYVi6mkQsWkBIG7Xe/jR9pzzZd/TviggNfTYB5eH2FlO08gdB41BXbUXPBEcA4VUIonAMEXo698lzD5iWUSQyAYKdU9Zzitv81uRBb1AJsUH4LzeUyhcXhDKI/tHixD+wF7KiFS0D0Z45/2eYgAQfNXQoN4cWO+6E4cvbf/9K8pd0oUs/z63Qy5zs+hzb6qmxtMrPFDDzjocs6M1mAapZ/sjqgPAjdX3CfjCxVi38sB0Ri/d0uW7HWgXU1uKgc1JtgFymSGmFUXq4WOdT+RXodRRrbS8uqe9rF3cz7AAqk8aRy50pGetCCEZiLfugbH9W+KT6YpC9vTUbTNtqI193MvWWVB7d9JKTrV2XjUDbRRqTTtfKc38i+HBXpZh3o0dZG35oIQw9oNl/hxOXRKHCA7PTsUjmQd2RCa/ZeT49u4OF7dADyz91kcM4o6Yfm5PNZeIVl1WUnyPRiejL58vWrN4ZSkylwd5J2G2DGC34tsh6Z155DpsdyQevoeByNuVJ2ZuTpXzv919T9zeQOfOxHAxXjz+SjI=
   on:
     branch: master
