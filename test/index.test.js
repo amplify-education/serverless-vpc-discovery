@@ -131,17 +131,19 @@ describe('Given invalid input for ', () => {
 
 describe('Catching errors in updateVpcConfig ', () => {
   it('AWS api call describeVpcs fails', () => {
+    AWS.mock('EC2', 'describeVpcs', emptyData);
+
     const plugin = constructPlugin({
       vpcName: vpc,
       subnetNames: subnets,
       securityGroupNames: securityGroups,
     });
-
     return plugin.updateVpcConfig().then(() => {
       throw new Error('Test has failed. updateVpcConfig did not catch errors.');
     }, (err) => {
-      const expectedErrorMessage = "Could not set vpc config. Message: UnknownEndpoint: Inaccessible host: `ec2.us-moon-1.amazonaws.com'. This service may not be available in the `us-moon-1' region.";
+      const expectedErrorMessage = 'Could not set vpc config. Message: Error: Invalid vpc name, it does not exist';
       expect(err.message).to.equal(expectedErrorMessage);
+      AWS.restore();
     });
   });
 
