@@ -1,18 +1,15 @@
 language: node_js
-
 node_js:
-  - "7.7.1"
-
+- 7.7.1
 install:
-  - npm install
-
+- npm install
 script:
-  - npm run lint
-  - bash test/versionCheck.sh $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST
-  - npm test
-
+- npm run lint
+- bash test/versionCheck.sh $TRAVIS_BRANCH $TRAVIS_PULL_REQUEST
+- npm test
 deploy:
   provider: npm
-  api_key: "API KEY HERE"
+  email: $NPM_EMAIL
+  api_key: $NPM_KEY
   on:
     branch: master
