@@ -2,6 +2,5 @@ extends:
     - airbnb
 rules:
     strict: off
-
 env:
     mocha: true
