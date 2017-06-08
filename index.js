@@ -7,9 +7,7 @@ class VPCPlugin {
   constructor(serverless) {
     this.serverless = serverless;
     const awsProvider = this.serverless.providers.aws.getCredentials();
-    if (awsProvider.credentials == null) {
-      throw new Error('AWS Provider was not set')
-    }
+
     AWS.config.update(awsProvider);
     this.ec2 = new AWS.EC2();
 
