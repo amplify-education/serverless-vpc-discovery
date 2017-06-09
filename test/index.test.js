@@ -2,6 +2,7 @@
 
 const chai = require('chai');
 const AWS = require('aws-sdk-mock');
+const aws = require('aws-sdk');
 const testData = require('./test-data.json');
 const emptyData = require('./empty-data.json');
 const VPCPlugin = require('../index.js');
@@ -9,6 +10,11 @@ const VPCPlugin = require('../index.js');
 const expect = chai.expect;
 
 // Used for changing what to test
+const testCreds = {
+  accessKeyId: 'test_key',
+  secretAccessKey: 'test_secret',
+  sessionToken: 'test_session',
+};
 const vpc = 'ci';
 const subnets = [
   'test_subnet_1',
@@ -33,13 +39,25 @@ const constructPlugin = (vpcConfig) => {
       log() {
       },
     },
+    providers: {
+      aws: {
+        getCredentials: () => new aws.Credentials(testCreds),
+      },
+    },
   };
   return new VPCPlugin(serverless);
 };
 
 describe('serverless-vpc-plugin', () => {
+  it('check aws config', () => {
+    const plugin = constructPlugin({}, 'tests');
+    const returnedCreds = plugin.ec2.config.credentials;
+    expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
+    expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
+  });
+
   it('registers hooks', () => {
-    const plugin = constructPlugin({}, {});
+    const plugin = constructPlugin({});
     expect(plugin.hooks['before:deploy:initialize']).to.be.a('function');
   });
 });

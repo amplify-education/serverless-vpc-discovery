@@ -1,6 +1,6 @@
 {
   "name": "serverless-vpc-discovery",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "engines": {
     "node": ">=4.0"
   },
