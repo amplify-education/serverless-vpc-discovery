@@ -6,9 +6,9 @@ const _ = require('underscore');
 class VPCPlugin {
   constructor(serverless) {
     this.serverless = serverless;
-    const awsProvider = this.serverless.providers.aws.getCredentials();
+    const awsCreds = this.serverless.providers.aws.getCredentials();
 
-    AWS.config.update(awsProvider);
+    AWS.config.update(awsCreds);
     this.ec2 = new AWS.EC2();
 
     /* hooks are the acutal code that will run when called */
