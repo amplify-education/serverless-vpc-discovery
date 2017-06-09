@@ -13,7 +13,7 @@ const expect = chai.expect;
 const testCreds = {
   accessKeyId: 'test_key',
   secretAccessKey: 'test_secret',
-  sessionToken: 'test_session'
+  sessionToken: 'test_session',
 };
 const vpc = 'ci';
 const subnets = [
@@ -25,7 +25,7 @@ const securityGroups = ['test_group_1'];
 const vpcId = 'vpc-test';
 
 // This will create a mock plugin to be used for testing
-const constructPlugin = (vpcConfig, test_credentials) => {
+const constructPlugin = (vpcConfig) => {
   const serverless = {
     service: {
       provider: {
@@ -41,11 +41,9 @@ const constructPlugin = (vpcConfig, test_credentials) => {
     },
     providers: {
       aws: {
-        getCredentials: function () {
-          return new aws.Credentials (testCreds);
-        }
-      }
-    }
+        getCredentials: () => new aws.Credentials(testCreds),
+      },
+    },
   };
   return new VPCPlugin(serverless);
 };
@@ -54,8 +52,8 @@ describe('serverless-vpc-plugin', () => {
   it('check aws config', () => {
     const plugin = constructPlugin({}, 'tests');
     const returnedCreds = plugin.ec2.config.credentials;
-    expect(returnedCreds['accessKeyId']).to.equal(testCreds['accessKeyId']);
-    expect(returnedCreds['sessionToken']).to.equal(testCreds['sessionToken']);
+    expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
+    expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
   });
 
   it('registers hooks', () => {
