@@ -119,7 +119,6 @@ describe('Given valid inputs for ', () => {
     AWS.mock('EC2', 'describeSubnets', testData);
     plugin = constructPlugin({});
     plugin.ec2 = new aws.EC2();
-
   });
 
   it('Subnets', () => plugin.getSubnetIds(vpcId, subnets).then((data) => {
