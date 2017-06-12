@@ -50,7 +50,17 @@ const constructPlugin = (vpcConfig) => {
 
 describe('serverless-vpc-plugin', () => {
   it('check aws config', () => {
-    const plugin = constructPlugin({}, 'tests');
+    AWS.mock('EC2', 'describeVpcs', testData);
+    AWS.mock('EC2', 'describeSubnets', testData);
+    AWS.mock('EC2', 'describeSecurityGroups', testData);
+
+    const plugin = constructPlugin({
+      vpcName: vpc,
+      subnetNames: subnets,
+      securityGroupNames: securityGroups,
+    });
+
+    plugin.updateVpcConfig();
     const returnedCreds = plugin.ec2.config.credentials;
     expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId);
     expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken);
@@ -86,6 +96,7 @@ describe('Given a vpc,', () => {
   it('vpc option given does not exist', () => {
     AWS.mock('EC2', 'describeVpcs', emptyData);
     const plugin = constructPlugin({});
+    plugin.ec2 = new aws.EC2();
 
     return plugin.getVpcId('not_a_vpc_name').then(() => {
       throw new Error('No error thrown for invalid VPC options');
@@ -107,6 +118,8 @@ describe('Given valid inputs for ', () => {
     AWS.mock('EC2', 'describeSecurityGroups', testData);
     AWS.mock('EC2', 'describeSubnets', testData);
     plugin = constructPlugin({});
+    plugin.ec2 = new aws.EC2();
+
   });
 
   it('Subnets', () => plugin.getSubnetIds(vpcId, subnets).then((data) => {
@@ -128,6 +141,7 @@ describe('Given invalid input for ', () => {
     AWS.mock('EC2', 'describeSecurityGroups', emptyData);
     AWS.mock('EC2', 'describeSubnets', emptyData);
     plugin = constructPlugin({}, {});
+    plugin.ec2 = new aws.EC2();
   });
 
   it('Subnets', () => plugin.getSubnetIds(vpcId, ['not_a_subnet']).then(() => {

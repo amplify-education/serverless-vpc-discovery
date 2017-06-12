@@ -6,15 +6,58 @@ const _ = require('underscore');
 class VPCPlugin {
   constructor(serverless) {
     this.serverless = serverless;
-    const awsCreds = this.serverless.providers.aws.getCredentials();
-
-    AWS.config.update(awsCreds);
-    this.ec2 = new AWS.EC2();
 
     /* hooks are the acutal code that will run when called */
     this.hooks = {
       'before:deploy:initialize': this.updateVpcConfig.bind(this),
     };
+  }
+
+  /**
+   * Gets the desired vpc with the designated subnets and security groups
+   * that were set in serverless config file
+   * @returns {Promise}
+   */
+  updateVpcConfig() {
+    const awsCreds = this.serverless.providers.aws.getCredentials();
+
+    AWS.config.update(awsCreds);
+    this.ec2 = new AWS.EC2();
+
+    this.serverless.cli.log('Updating VPC config...');
+    const service = this.serverless.service;
+
+    // Checks if the serverless file is setup correctly
+    if (service.custom.vpc.vpcName == null || service.custom.vpc.subnetNames == null ||
+      service.custom.vpc.securityGroupNames == null) {
+      throw new Error('Serverless file is not configured correctly. Please see README for proper setup.');
+    }
+
+
+    // Returns the vpc with subnet and security group ids
+    return this.getVpcId(service.custom.vpc.vpcName).then((vpcId) => {
+      const promises = [
+        this.getSubnetIds(vpcId, service.custom.vpc.subnetNames),
+        this.getSecurityGroupIds(vpcId, service.custom.vpc.securityGroupNames),
+      ];
+
+      return (Promise.all(promises).then((values) => {
+        // Checks to see if either subnets or security gropus returned nothing
+        if (!values[0].length || !values[1].length) {
+          throw new Error('Vpc was not set');
+        }
+
+        // Sets the serverless's vpc config
+        service.provider.vpc = {
+          subnetIds: values[0],
+          securityGroupIds: values[1],
+        };
+
+        return service.provider.vpc;
+      }));
+    }).catch((err) => {
+      throw new Error(`Could not set vpc config. Message: ${err}`);
+    });
   }
 
   /**
@@ -117,48 +160,6 @@ class VPCPlugin {
       const securityGroupIds = data.SecurityGroups.map(obj => obj.GroupId);
 
       return securityGroupIds;
-    });
-  }
-
-  /**
-   * Gets the desired vpc with the designated subnets and security groups
-   * that were set in serverless config file
-   * @returns {Promise}
-   */
-  updateVpcConfig() {
-    this.serverless.cli.log('Updating VPC config...');
-    const service = this.serverless.service;
-
-    // Checks if the serverless file is setup correctly
-    if (service.custom.vpc.vpcName == null || service.custom.vpc.subnetNames == null ||
-      service.custom.vpc.securityGroupNames == null) {
-      throw new Error('Serverless file is not configured correctly. Please see README for proper setup.');
-    }
-
-
-    // Returns the vpc with subnet and security group ids
-    return this.getVpcId(service.custom.vpc.vpcName).then((vpcId) => {
-      const promises = [
-        this.getSubnetIds(vpcId, service.custom.vpc.subnetNames),
-        this.getSecurityGroupIds(vpcId, service.custom.vpc.securityGroupNames),
-      ];
-
-      return (Promise.all(promises).then((values) => {
-        // Checks to see if either subnets or security gropus returned nothing
-        if (!values[0].length || !values[1].length) {
-          throw new Error('Vpc was not set');
-        }
-
-        // Sets the serverless's vpc config
-        service.provider.vpc = {
-          subnetIds: values[0],
-          securityGroupIds: values[1],
-        };
-
-        return service.provider.vpc;
-      }));
-    }).catch((err) => {
-      throw new Error(`Could not set vpc config. Message: ${err}`);
     });
   }
 }
