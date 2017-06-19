@@ -9,7 +9,7 @@ class VPCPlugin {
 
     /* hooks are the acutal code that will run when called */
     this.hooks = {
-      'before:deploy:initialize': this.updateVpcConfig.bind(this),
+      'before:package:initialize': this.updateVpcConfig.bind(this),
     };
   }
 
