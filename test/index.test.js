@@ -68,7 +68,7 @@ describe('serverless-vpc-plugin', () => {
 
   it('registers hooks', () => {
     const plugin = constructPlugin({});
-    expect(plugin.hooks['before:deploy:initialize']).to.be.a('function');
+    expect(plugin.hooks['before:package:initialize']).to.be.a('function');
   });
 });
 
