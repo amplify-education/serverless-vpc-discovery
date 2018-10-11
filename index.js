@@ -22,6 +22,10 @@ class VPCPlugin {
     const awsCreds = this.serverless.providers.aws.getCredentials();
 
     AWS.config.update(awsCreds);
+    AWS.config.update({
+      maxRetries: 20,
+    });
+
     this.ec2 = new AWS.EC2();
 
     this.serverless.cli.log('Updating VPC config...');
