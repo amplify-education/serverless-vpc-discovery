@@ -73,8 +73,7 @@ And that should be it! Good Luck!
 # How it Works
 
 The vpc, subnets, and security groups are found by filtering based on a specified tag name.
-Vpc and subnets are found under the tag name `tag:Name`.
-Security groups are found by the name of the group under `group-name`.
+Vpc, security groups, and subnets are found under the tag name `tag:Name`.
 
 The vpc is found first as it is used to find the subnets and security groups. Once all of the subnets and security groups are found the serverless service provider creates a vpc object and stores the subnets and security groups.
 

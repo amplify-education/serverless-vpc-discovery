@@ -144,7 +144,7 @@ class VPCPlugin {
         Name: 'vpc-id',
         Values: [vpcId],
       }, {
-        Name: 'group-name',
+        Name: 'tag:Name',
         Values: securityGroupNames,
       }],
 
@@ -156,7 +156,15 @@ class VPCPlugin {
       }
 
       if (paramsSecurity.Filters[1].Values.length !== data.SecurityGroups.length) {
-        const validGroups = data.SecurityGroups.map(obj => obj.GroupName);
+        const validGroups = data.SecurityGroups.reduce((accum, val) => {
+          const nameTag = val.Tags.find(tag => tag.Key === 'Name');
+
+          if (nameTag) {
+            accum.push(nameTag.Value);
+          }
+
+          return accum;
+        }, []);
         const missingGroups = _.difference(paramsSecurity.Filters[1].Values, validGroups);
         throw new Error(`Not all security group were registered: ${missingGroups}`);
       }
