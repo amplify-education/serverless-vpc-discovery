@@ -1,5 +1,5 @@
 {
-  "name": "serverless-vpc-discovery",
+  "name": "@delkopiso/serverless-vpc-discovery",
   "version": "1.0.13",
   "engines": {
     "node": ">=4.0"
@@ -9,7 +9,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/amplify-education/serverless-vpc-discovery"
+    "url": "https://github.com/delkopiso/serverless-vpc-discovery"
   },
   "keywords": [
     "serverless discovery VPC",
