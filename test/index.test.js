@@ -88,8 +88,8 @@ describe('Given a vpc,', () => {
 
     return plugin.updateVpcConfig().then((data) => {
       expect(data).to.eql({
-        securityGroupIds: ['sg-test'],
-        subnetIds: ['subnet-test-1', 'subnet-test-2', 'subnet-test-3'],
+        securityGroupIds: ['sg-test', 'sg-test2', 'sg-test3'],
+        subnetIds: ['subnet-test-1', 'subnet-test-2', 'subnet-test-3', 'subnet-test-4', 'subnet-test-5'],
       });
     });
   });
