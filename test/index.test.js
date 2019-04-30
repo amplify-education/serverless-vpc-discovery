@@ -20,8 +20,9 @@ const subnets = [
   'test_subnet_1',
   'test_subnet_2',
   'test_subnet_3',
+  'common_name',
 ];
-const securityGroups = ['test_group_1'];
+const securityGroups = ['test_group_1', 'common_name'];
 const vpcId = 'vpc-test';
 
 // This will create a mock plugin to be used for testing
