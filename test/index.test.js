@@ -25,11 +25,19 @@ const securityGroups = ['test_group_1'];
 const vpcId = 'vpc-test';
 
 // This will create a mock plugin to be used for testing
+const overridenVpc = { vpc: { subnets: ['override_subnet'], securityGroups: ['override_sc'] } };
+
 const constructPlugin = (vpcConfig) => {
   const serverless = {
     service: {
       provider: {
         region: 'us-moon-1',
+      },
+      functions: {
+        inVpc0: {},
+        inVpc1: {},
+        outOfVpc: { vpc: null },
+        inOverridenVpc: overridenVpc,
       },
       custom: {
         vpc: vpcConfig,
@@ -86,10 +94,13 @@ describe('Given a vpc,', () => {
     });
 
     return plugin.updateVpcConfig().then((data) => {
-      expect(data).to.eql({
+      const { inVpc0, inVpc1, outOfVpc, inOverridenVpc } = data;
+      [inVpc0, inVpc1].forEach(f => expect(f.vpc).to.eql({
         securityGroupIds: ['sg-test'],
         subnetIds: ['subnet-test-1', 'subnet-test-2', 'subnet-test-3'],
-      });
+      }));
+      expect(outOfVpc.vpc).to.eql(null);
+      expect(inOverridenVpc.vpc).to.eql(overridenVpc.vpc);
     });
   });
 
