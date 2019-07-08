@@ -114,7 +114,7 @@ class VPCPlugin {
         throw new Error('Invalid subnet name, it does not exist');
       }
 
-      if (paramsSubnet.Filters[1].Values.length !== data.Subnets.length) {
+      if (paramsSubnet.Filters[1].Values.length > data.Subnets.length) {
         // Creates a list of the valid subnets
         const validSubnets = data.Subnets.reduce((accum, val) => {
           const nameTag = val.Tags.find(tag => tag.Key === 'Name');
@@ -160,7 +160,7 @@ class VPCPlugin {
         throw new Error('Invalid security group name, it does not exist');
       }
 
-      if (paramsSecurity.Filters[1].Values.length !== data.SecurityGroups.length) {
+      if (paramsSecurity.Filters[1].Values.length > data.SecurityGroups.length) {
         const validGroups = data.SecurityGroups.map(obj => obj.GroupName);
         const missingGroups = _.difference(paramsSecurity.Filters[1].Values, validGroups);
         throw new Error(`Not all security group were registered: ${missingGroups}`);

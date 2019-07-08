@@ -37,12 +37,42 @@
           "Value": "test_subnet_3"
         }
       ]
+    },
+    {
+      "SubnetId": "subnet-test-4",
+      "State": "available",
+      "VpcId": "vpc-test",
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "common_name"
+        }
+      ]
+    },
+    {
+      "SubnetId": "subnet-test-5",
+      "State": "available",
+      "VpcId": "vpc-test",
+      "Tags": [
+        {
+          "Key": "Name",
+          "Value": "common_name"
+        }
+      ]
     }
   ],
   "SecurityGroups": [
     {
       "GroupId": "sg-test",
       "GroupName": "test_group_1"
+    },
+    {
+      "GroupId": "sg-test2",
+      "GroupName": "common_name"
+    },
+    {
+      "GroupId": "sg-test3",
+      "GroupName": "common_name"
     }
   ]
 }

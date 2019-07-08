@@ -20,8 +20,9 @@ const subnets = [
   'test_subnet_1',
   'test_subnet_2',
   'test_subnet_3',
+  'common_name',
 ];
-const securityGroups = ['test_group_1'];
+const securityGroups = ['test_group_1', 'common_name'];
 const vpcId = 'vpc-test';
 
 // This will create a mock plugin to be used for testing
@@ -96,8 +97,8 @@ describe('Given a vpc,', () => {
     return plugin.updateVpcConfig().then((data) => {
       const { inVpc0, inVpc1, outOfVpc, inOverridenVpc } = data;
       [inVpc0, inVpc1].forEach(f => expect(f.vpc).to.eql({
-        securityGroupIds: ['sg-test'],
-        subnetIds: ['subnet-test-1', 'subnet-test-2', 'subnet-test-3'],
+        securityGroupIds: ['sg-test', 'sg-test2', 'sg-test3'],
+        subnetIds: ['subnet-test-1', 'subnet-test-2', 'subnet-test-3', 'subnet-test-4', 'subnet-test-5'],
       }));
       expect(outOfVpc.vpc).to.eql(null);
       expect(inOverridenVpc.vpc).to.eql(overridenVpc.vpc);
