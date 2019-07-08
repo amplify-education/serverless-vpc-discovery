@@ -172,4 +172,5 @@ class VPCPlugin {
     });
   }
 }
+
 module.exports = VPCPlugin;
