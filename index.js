@@ -52,12 +52,17 @@ class VPCPlugin {
         }
 
         // Sets the serverless's vpc config
-        service.provider.vpc = {
-          subnetIds: values[0],
-          securityGroupIds: values[1],
-        };
+        if (service.functions) {
+          Object.values(service.functions).filter(f => f.vpc === undefined).forEach((f) => {
+            // eslint-disable-next-line no-param-reassign
+            f.vpc = {
+              subnetIds: values[0],
+              securityGroupIds: values[1],
+            };
+          });
+        }
 
-        return service.provider.vpc;
+        return service.functions;
       }));
     }).catch((err) => {
       throw new Error(`Could not set vpc config. Message: ${err}`);
