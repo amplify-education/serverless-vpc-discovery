@@ -1,5 +1,5 @@
 {
-  "name": "serverless-vpc-discovery",
+  "name": "@env0/serverless-vpc-discovery",
   "version": "1.0.15",
   "engines": {
     "node": ">=4.0"
