@@ -20,6 +20,7 @@ class VPCPlugin {
    */
   updateVpcConfig() {
     const awsCreds = this.serverless.providers.aws.getCredentials();
+    awsCreds.region = this.serverless.providers.aws.getRegion();
 
     AWS.config.update(awsCreds);
     AWS.config.update({
