@@ -51,6 +51,7 @@ const constructPlugin = (vpcConfig) => {
     providers: {
       aws: {
         getCredentials: () => new aws.Credentials(testCreds),
+        getRegion: () => 'us-moon-1',
       },
     },
   };
