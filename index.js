@@ -55,8 +55,12 @@ class VPCPlugin {
         // Sets the serverless's vpc config
         if (service.functions) {
           Object.values(service.functions)
-            .filter(f => (!service.custom.vpc.disable && f.vpc === undefined)
-              || (service.custom.vpc.disable && f.vpc === service.custom.vpc.vpcName))
+            .filter((f) => {
+              const noVpcDefinedForFunction = f.vpc === undefined;
+              const vpcNameEquals = f.vpc && f.vpc.vpcName === service.custom.vpc.vpcName;
+              return (!service.custom.vpc.disable && noVpcDefinedForFunction)
+                || (service.custom.vpc.disable && vpcNameEquals);
+            })
             .forEach((f) => {
             // eslint-disable-next-line no-param-reassign
               f.vpc = {
