@@ -54,13 +54,16 @@ class VPCPlugin {
 
         // Sets the serverless's vpc config
         if (service.functions) {
-          Object.values(service.functions).filter(f => f.vpc === undefined).forEach((f) => {
+          Object.values(service.functions)
+            .filter(f => (!service.custom.vpc.disable && f.vpc === undefined)
+              || (service.custom.vpc.disable && f.vpc === service.custom.vpc.vpcName))
+            .forEach((f) => {
             // eslint-disable-next-line no-param-reassign
-            f.vpc = {
-              subnetIds: values[0],
-              securityGroupIds: values[1],
-            };
-          });
+              f.vpc = {
+                subnetIds: values[0],
+                securityGroupIds: values[1],
+              };
+            });
         }
 
         return service.functions;
