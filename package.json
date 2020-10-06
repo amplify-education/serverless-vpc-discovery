@@ -1,6 +1,6 @@
 {
   "name": "@corydorning/serverless-vpc-discovery",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "engines": {
     "node": ">=4.0"
   },
