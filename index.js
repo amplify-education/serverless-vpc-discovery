@@ -33,24 +33,32 @@ class VPCPlugin {
     const service = this.serverless.service;
 
     // Checks if the serverless file is setup correctly
-    if (service.custom.vpc.vpcName == null || service.custom.vpc.subnetNames == null ||
-      service.custom.vpc.securityGroupNames == null) {
-      throw new Error('Serverless file is not configured correctly. Please see README for proper setup.');
+    if (service.custom.vpc.vpcName == null && (service.custom.vpc.subnetNames == null && service.custom.vpc.securityGroupNames == null)) {
+      throw new Error('Serverless file is not configured correctly. You must specify the vpcName and at least one of subnetNames or securityGroupNames. Please see README for proper setup.');
     }
 
 
     // Returns the vpc with subnet and security group ids
     return this.getVpcId(service.custom.vpc.vpcName).then((vpcId) => {
-      const promises = [
-        this.getSubnetIds(vpcId, service.custom.vpc.subnetNames),
-        this.getSecurityGroupIds(vpcId, service.custom.vpc.securityGroupNames),
-      ];
+      const promises = [];
+
+      // lookup subnet names?
+      if (service.custom.vpc.subnetNames) {
+        promises.push(this.getSubnetIds(vpcId, service.custom.vpc.subnetNames));
+      }
+
+      // lookup security group names?
+      if (service.custom.vpc.securityGroupNames) {
+        promises.push(this.getSecurityGroupIds(vpcId, service.custom.vpc.securityGroupNames));
+      }
 
       return (Promise.all(promises).then((values) => {
-        // Checks to see if either subnets or security gropus returned nothing
-        if (!values[0].length || !values[1].length) {
-          throw new Error('Vpc was not set');
-        }
+        // Checks to see if either subnets or security groups returned nothing
+        values.forEach((value) => {
+          if (!value.length) {
+            throw new Error('Vpc was not set');
+          }
+        });
 
         // Sets the serverless's vpc config
         if (service.functions) {
@@ -62,11 +70,16 @@ class VPCPlugin {
                 || (service.custom.vpc.disable && vpcNameEquals);
             })
             .forEach((f) => {
-            // eslint-disable-next-line no-param-reassign
-              f.vpc = {
-                subnetIds: values[0],
-                securityGroupIds: values[1],
-              };
+              f.vpc = {};
+
+              if (service.custom.vpc.subnetNames && service.custom.vpc.securityGroupNames) {
+                f.vpc.subnetIds = values[0];
+                f.vpc.securityGroupIds = values[1];
+              } else if (service.custom.vpc.subnetNames) {
+                f.vpc.subnetIds = values[0];
+              } else {
+                f.vpc.securityGroupIds = values[0];
+              }
             });
         }
 
