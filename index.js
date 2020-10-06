@@ -62,6 +62,7 @@ class VPCPlugin {
 
         // Sets the serverless's vpc config
         if (service.functions) {
+console.log('functions:',service.functions);          
           Object.values(service.functions)
             .filter((f) => {
               const noVpcDefinedForFunction = f.vpc === undefined;
