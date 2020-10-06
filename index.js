@@ -62,7 +62,6 @@ class VPCPlugin {
 
         // Sets the serverless's vpc config
         if (service.functions) {
-console.log('functions:',service.functions);          
           Object.values(service.functions)
             .filter((f) => {
               const noVpcDefinedForFunction = f.vpc === undefined;
@@ -71,8 +70,6 @@ console.log('functions:',service.functions);
                 || (service.custom.vpc.disable && vpcNameEquals);
             })
             .forEach((f) => {
-console.log('vpc functions:',f)
-console.log('vpcs values:', values)
               if (service.custom.vpc.subnetNames && service.custom.vpc.securityGroupNames) {
                 f.vpc.subnetIds = values[0];
                 f.vpc.securityGroupIds = values[1];
