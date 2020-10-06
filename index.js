@@ -71,7 +71,6 @@ console.log('functions:',service.functions);
                 || (service.custom.vpc.disable && vpcNameEquals);
             })
             .forEach((f) => {
-              f.vpc = {};
 console.log('vpc functions:',f)
 console.log('vpcs values:', values)
               if (service.custom.vpc.subnetNames && service.custom.vpc.securityGroupNames) {
