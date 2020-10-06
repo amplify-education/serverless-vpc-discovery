@@ -47,6 +47,7 @@ custom:
       - '${opt:env}_NAME OF SUBNET'
     securityGroupNames:
       - '${opt:env}_NAME OF SECURITY GROUP'
+    disable: true (sets at function level), false (sets at provider level)
 ```
 > NOTE: The naming pattern we used here was building off the vpc name for the subnet and security group by extending it with the the subnet and security group name. This makes it easier to switch to different vpcs by changing the environment variable in the command line
 

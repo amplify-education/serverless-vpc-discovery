@@ -1,5 +1,5 @@
 {
-  "name": "@env0/serverless-vpc-discovery",
+  "name": "@corydorning/serverless-vpc-discovery",
   "version": "1.0.18",
   "engines": {
     "node": ">=4.0"
@@ -9,7 +9,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/amplify-education/serverless-vpc-discovery"
+    "url": "git+https://github.com/amplify-education/serverless-vpc-discovery.git"
   },
   "keywords": [
     "serverless discovery VPC",
@@ -24,7 +24,6 @@
     "serverless.com"
   ],
   "main": "index.js",
-  "bin": {},
   "scripts": {
     "test": "node ./node_modules/istanbul/lib/cli.js cover _mocha -- -R spec && node ./node_modules/istanbul/lib/cli.js check-coverage --line 70 coverage/coverage.json",
     "lint": "eslint ."
@@ -43,5 +42,12 @@
   "dependencies": {
     "aws-sdk": "^2.2.33",
     "underscore": "^1.8.3"
+  },
+  "bugs": {
+    "url": "https://github.com/amplify-education/serverless-vpc-discovery/issues"
+  },
+  "homepage": "https://github.com/amplify-education/serverless-vpc-discovery#readme",
+  "directories": {
+    "test": "test"
   }
 }
