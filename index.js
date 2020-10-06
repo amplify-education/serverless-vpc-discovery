@@ -71,7 +71,8 @@ class VPCPlugin {
             })
             .forEach((f) => {
               f.vpc = {};
-
+console.log('vpc functions:',f)
+console.log('vpcs values:', values)
               if (service.custom.vpc.subnetNames && service.custom.vpc.securityGroupNames) {
                 f.vpc.subnetIds = values[0];
                 f.vpc.securityGroupIds = values[1];
