@@ -23,25 +23,32 @@
     "amazon web services",
     "serverless.com"
   ],
-  "main": "index.js",
+  "main": "dist/src/index.js",
   "bin": {},
   "scripts": {
-    "test": "node ./node_modules/istanbul/lib/cli.js cover _mocha -- -R spec && node ./node_modules/istanbul/lib/cli.js check-coverage --line 70 coverage/coverage.json",
-    "lint": "eslint ."
+    "test": "nyc mocha -r ts-node/register --project tsconfig.json test/index.test.js && nyc report --reporter=text-summary",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "build": "tsc --project ."
   },
   "devDependencies": {
-    "aws-sdk-mock": "^1.6.1",
-    "chai": "^3.5.0",
-    "eslint": "^3.18.0",
-    "eslint-config-airbnb": "^14.1.0",
-    "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-jsx-a11y": "^4.0.0",
-    "eslint-plugin-react": "^6.10.3",
-    "istanbul": "^0.4.5",
-    "mocha": "^2.2.5"
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
+    "@typescript-eslint/parser": "^4.6.1",
+    "aws-sdk-mock": "^5.1.0",
+    "chai": "^4.1.0",
+    "eslint": "^7.12.1",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-config-standard": "^16.0.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "6.4.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "mocha": "^8.2.1"
   },
   "dependencies": {
-    "aws-sdk": "^2.2.33",
+    "aws-sdk": "^2.785.0",
+    "require": "^2.4.20",
+    "typescript": "^4.0.5",
     "underscore": "^1.8.3"
   }
 }
