@@ -31,6 +31,17 @@
     "lint:fix": "npm run lint -- --fix",
     "build": "tsc --project ."
   },
+  "files": [
+    "*.js",
+    "*.ts",
+    "*.json",
+    "dist/**/*.js"
+  ],
+  "nyc": {
+    "extension": [
+      ".ts"
+    ]
+  },
   "devDependencies": {
     "@types/mocha": "^8.0.3",
     "@types/node": "^14.14.6",
