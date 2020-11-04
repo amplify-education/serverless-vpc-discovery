@@ -2,13 +2,13 @@
 
 import { ServerlessInstance } from "./types"
 
-import AWS from "aws-sdk"
-import _ from "underscore"
+import * as AWS from "aws-sdk"
+import * as _ from "underscore"
 
 class VPCPlugin {
     private serverless: ServerlessInstance;
-    private hooks: object;
-    private ec2: AWS.EC2;
+    public hooks: object;
+    public ec2: AWS.EC2;
 
     constructor (serverless) {
       this.serverless = serverless

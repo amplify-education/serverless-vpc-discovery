@@ -1,14 +1,17 @@
 "use strict"
 
-import chai from "chai"
-import AWS from "aws-sdk-mock"
-import aws from "aws-sdk"
-import emptyData from "empty-data.json"
-import VPCPlugin from "../index.js"
+import aws = require("aws-sdk")
+import VPCPlugin = require("../src/index")
+import AWS = require("aws-sdk-mock")
+import chai = require("chai")
+import spies = require("chai-spies")
 
-const testData = require("test-data.json")
+const emptyData = require("./empty-data.json")
+const testData = require("./test-data.json")
 
 const expect = chai.expect
+
+chai.use(spies)
 
 // Used for changing what to test
 const testCreds = {
@@ -140,7 +143,7 @@ describe("Given invalid input for ", () => {
   beforeEach(() => {
     AWS.mock("EC2", "describeSecurityGroups", emptyData)
     AWS.mock("EC2", "describeSubnets", emptyData)
-    plugin = constructPlugin({}, {})
+    plugin = constructPlugin({})
     plugin.ec2 = new aws.EC2()
   })
 
