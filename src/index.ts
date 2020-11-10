@@ -1,8 +1,7 @@
 "use strict"
 
 import { ServerlessInstance } from "./types"
-
-import EC2Wrapper = require("./aws/ec2-wrapper")
+import { EC2Wrapper } from "./aws/ec2-wrapper"
 
 class VPCPlugin {
   private serverless: ServerlessInstance;

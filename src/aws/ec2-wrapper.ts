@@ -118,4 +118,6 @@ class EC2Wrapper {
   }
 }
 
-export = EC2Wrapper
+export {
+  EC2Wrapper
+}

@@ -1,17 +1,12 @@
 "use strict"
 
-import aws = require("aws-sdk")
-import VPCPlugin = require("../../src/index")
-import AWS = require("aws-sdk-mock")
-import chai = require("chai")
-import spies = require("chai-spies")
+import * as aws from "aws-sdk"
+import * as AWS from "aws-sdk-mock"
+import { expect } from "chai"
+import VPCPlugin from "../../src/index"
 
 const emptyData = require("./empty-data.json")
 const testData = require("./test-data.json")
-
-const expect = chai.expect
-
-chai.use(spies)
 
 // Used for changing what to test
 const testCreds = {
@@ -65,8 +60,8 @@ describe("serverless-vpc-plugin", () => {
       securityGroupNames: securityGroups
     })
 
-    plugin.updateVpcConfig()
-    const returnedCreds = plugin.ec2.config.credentials
+    plugin.initAWSResources()
+    const returnedCreds = plugin.ec2Wrapper.ec2.config.credentials
     expect(returnedCreds.accessKeyId).to.equal(testCreds.accessKeyId)
     expect(returnedCreds.sessionToken).to.equal(testCreds.sessionToken)
   })
@@ -88,6 +83,7 @@ describe("Given a vpc,", () => {
       subnetNames: subnets,
       securityGroupNames: securityGroups
     })
+    plugin.initAWSResources()
 
     return plugin.updateVpcConfig().then((data) => {
       expect(data).to.eql({
@@ -100,9 +96,9 @@ describe("Given a vpc,", () => {
   it("vpc option given does not exist", () => {
     AWS.mock("EC2", "describeVpcs", emptyData)
     const plugin = constructPlugin({})
-    plugin.ec2 = new aws.EC2()
+    plugin.initAWSResources()
 
-    return plugin.getVpcId("not_a_vpc_name").then(() => {
+    return plugin.ec2Wrapper.getVpcId("not_a_vpc_name").then(() => {
       throw new Error("No error thrown for invalid VPC options")
     }, (err) => {
       expect(err.message).to.equal("Invalid vpc name, it does not exist")
@@ -122,14 +118,14 @@ describe("Given valid inputs for ", () => {
     AWS.mock("EC2", "describeSecurityGroups", testData)
     AWS.mock("EC2", "describeSubnets", testData)
     plugin = constructPlugin({})
-    plugin.ec2 = new aws.EC2()
+    plugin.initAWSResources()
   })
 
-  it("Subnets", () => plugin.getSubnetIds(vpcId, subnets).then((data) => {
+  it("Subnets", () => plugin.ec2Wrapper.getSubnetIds(vpcId, subnets).then((data) => {
     expect(data[0]).to.equal("subnet-test-1")
   }))
 
-  it("Security Groups", () => plugin.getSecurityGroupIds(vpcId, securityGroups).then((data) => {
+  it("Security Groups", () => plugin.ec2Wrapper.getSecurityGroupIds(vpcId, securityGroups).then((data) => {
     expect(data[0]).to.equal("sg-test")
   }))
 
@@ -144,16 +140,16 @@ describe("Given invalid input for ", () => {
     AWS.mock("EC2", "describeSecurityGroups", emptyData)
     AWS.mock("EC2", "describeSubnets", emptyData)
     plugin = constructPlugin({})
-    plugin.ec2 = new aws.EC2()
+    plugin.initAWSResources()
   })
 
-  it("Subnets", () => plugin.getSubnetIds(vpcId, ["not_a_subnet"]).then(() => {
+  it("Subnets", () => plugin.ec2Wrapper.getSubnetIds(vpcId, ["not_a_subnet"]).then(() => {
     throw new Error("Test has failed. Subnets were created with invalid inputs")
   }, (err) => {
     expect(err.message).to.equal("Invalid subnet name, it does not exist")
   }))
 
-  it("Security Groups", () => plugin.getSecurityGroupIds(vpcId, ["not_a_security"]).then(() => {
+  it("Security Groups", () => plugin.ec2Wrapper.getSecurityGroupIds(vpcId, ["not_a_security"]).then(() => {
     throw new Error("Test has failed. Security Groups were created with invalid inputs")
   }, (err) => {
     expect(err.message).to.equal("Invalid security group name, it does not exist")
@@ -173,10 +169,11 @@ describe("Catching errors in updateVpcConfig ", () => {
       subnetNames: subnets,
       securityGroupNames: securityGroups
     })
+    plugin.initAWSResources()
     return plugin.updateVpcConfig().then(() => {
       throw new Error("Test has failed. updateVpcConfig did not catch errors.")
     }, (err) => {
-      const expectedErrorMessage = "Could not set vpc config. Message: Error: Invalid vpc name, it does not exist"
+      const expectedErrorMessage = "Invalid vpc name, it does not exist"
       expect(err.message).to.equal(expectedErrorMessage)
       AWS.restore()
     })
@@ -188,9 +185,7 @@ describe("Catching errors in updateVpcConfig ", () => {
     })
 
     try {
-      return plugin.updateVpcConfig().then(() => {
-        throw new Error("Test has failed. updateVpcConfig did not catch errors.")
-      })
+      plugin.validateConfigExists()
     } catch (err) {
       const expectedErrorMessage = "Serverless file is not configured correctly. Please see README for proper setup."
       expect(err.message).to.equal(expectedErrorMessage)

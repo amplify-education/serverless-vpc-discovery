@@ -1,4 +1,4 @@
-import randomstring = require("randomstring");
+import { randomstring } from "randomstring"
 
 const TEST_DOMAIN = process.env.TEST_DOMAIN
 

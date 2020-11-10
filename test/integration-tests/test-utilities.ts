@@ -1,6 +1,6 @@
 "use strict"
 
-import shell = require("shelljs")
+import { shell } from "shelljs"
 
 /**
  * Executes given shell command.

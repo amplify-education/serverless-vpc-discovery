@@ -69,7 +69,6 @@
     "typescript": "^4.0.5"
   },
   "dependencies": {
-    "aws-sdk": "^2.788.0",
-    "require": "^2.4.20"
+    "aws-sdk": "^2.788.0"
   }
 }
