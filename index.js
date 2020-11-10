@@ -1,6 +1,5 @@
 'use strict';
 
-const AWS = require('aws-sdk');
 const _ = require('underscore');
 
 class VPCPlugin {
@@ -19,15 +18,10 @@ class VPCPlugin {
    * @returns {Promise}
    */
   updateVpcConfig() {
-    const awsCreds = this.serverless.providers.aws.getCredentials();
-    awsCreds.region = this.serverless.providers.aws.getRegion();
-
-    AWS.config.update(awsCreds);
-    AWS.config.update({
+    this.ec2 = new this.serverless.providers.aws.sdk.EC2({
       maxRetries: 20,
+      region: this.serverless.providers.aws.getRegion()
     });
-
-    this.ec2 = new AWS.EC2();
 
     this.serverless.cli.log('Updating VPC config...');
     const service = this.serverless.service;
