@@ -1,0 +1,34 @@
+# basic example
+service: test-sls-vpc-dicovery-${opt:RANDOM_STRING}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  endpointType: regional
+  stage: test
+
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    events:
+      - http:
+          path: hello-world
+          method: get
+          cors: true
+
+plugins:
+  - serverless-vpc-discovery
+
+custom:
+  customDomain:
+    stage: ${self:provider.stage}
+    domainName: apigateway-with-export-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
+    autoDomain: true
+    basePath: hello-world
+    endpointType: regional
+    createRoute53Record: false
+
+package:
+  exclude:
+    - node_modules/**

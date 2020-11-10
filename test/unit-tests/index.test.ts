@@ -1,7 +1,7 @@
 "use strict"
 
 import aws = require("aws-sdk")
-import VPCPlugin = require("../src/index")
+import VPCPlugin = require("../../src/index")
 import AWS = require("aws-sdk-mock")
 import chai = require("chai")
 import spies = require("chai-spies")

@@ -1,6 +1,6 @@
 {
   "name": "serverless-vpc-discovery",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -26,7 +26,8 @@
   "main": "dist/src/index.js",
   "bin": {},
   "scripts": {
-    "test": "nyc mocha -r ts-node/register --project tsconfig.json test/index.test.ts && nyc report --reporter=text-summary",
+    "test": "nyc mocha -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
+    "integration-test": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/*.test.ts && nyc report --reporter=text-summary",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "build": "tsc --project ."
@@ -44,28 +45,31 @@
   },
   "devDependencies": {
     "@types/mocha": "^8.0.3",
-    "@types/node": "^14.14.6",
-    "@typescript-eslint/eslint-plugin": "^4.6.1",
-    "@typescript-eslint/parser": "^4.6.1",
+    "@types/node": "^14.14.7",
+    "@typescript-eslint/eslint-plugin": "^4.7.0",
+    "@typescript-eslint/parser": "^4.7.0",
     "aws-sdk-mock": "^5.1.0",
     "chai": "^4.1.0",
     "chai-spies": "^1.0.0",
-    "eslint": "^7.12.1",
-    "eslint-config-airbnb": "^18.2.0",
+    "eslint": "^7.13.0",
+    "eslint-config-airbnb": "^18.2.1",
     "eslint-config-standard": "^16.0.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "6.4.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.21.5",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "mocha": "^8.2.1",
     "mocha-param": "^2.0.1",
     "nyc": "^15.1.0",
-    "ts-node": "^9.0.0"
+    "randomstring": "^1.1.5",
+    "shelljs": "^0.8.4",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
   },
   "dependencies": {
-    "aws-sdk": "^2.785.0",
-    "require": "^2.4.20",
-    "typescript": "^4.0.5",
-    "underscore": "^1.8.3"
+    "aws-sdk": "^2.788.0",
+    "require": "^2.4.20"
   }
 }

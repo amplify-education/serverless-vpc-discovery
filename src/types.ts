@@ -1,7 +1,7 @@
 export interface VPC {
     vpcName: string;
-    subnetNames: string | undefined;
-    securityGroupNames: string | undefined;
+    subnetNames: string[] | undefined;
+    securityGroupNames: string[] | undefined;
 }
 
 export interface ServerlessInstance {

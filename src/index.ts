@@ -2,172 +2,76 @@
 
 import { ServerlessInstance } from "./types"
 
-import * as AWS from "aws-sdk"
-import * as _ from "underscore"
+import EC2Wrapper = require("./aws/ec2-wrapper")
 
 class VPCPlugin {
-    private serverless: ServerlessInstance;
-    public hooks: object;
-    public ec2: AWS.EC2;
+  private serverless: ServerlessInstance;
+  public hooks: object;
+  public ec2Wrapper: EC2Wrapper;
 
-    constructor (serverless) {
-      this.serverless = serverless
+  constructor (serverless) {
+    this.serverless = serverless
 
-      /* hooks are the acutal code that will run when called */
-      this.hooks = {
-        "before:package:initialize": this.updateVpcConfig.bind(this)
-      }
+    /* hooks are the actual code that will run when called */
+    this.hooks = {
+      "before:package:initialize": this.hookWrapper.bind(this, this.updateVpcConfig)
+    }
+  }
+
+  /**
+   * Wrapper for lifecycle function, initializes variables and checks if enabled.
+   * @param lifecycleFunc lifecycle function that actually does desired action
+   */
+  public async hookWrapper (lifecycleFunc: any) {
+    // check if `customDomain` or `customDomains` config exists
+    this.validateConfigExists()
+    // setup AWS resources
+    this.initAWSResources()
+    return await lifecycleFunc.call(this)
+  }
+
+  /**
+   * Validate if the plugin config exists
+   */
+  public validateConfigExists (): void {
+    const config = this.serverless.service.custom
+    const vpc = config && config.vpc
+    // Checks if the serverless file is setup correctly
+    if (!vpc || vpc.vpcName == null || vpc.subnetNames == null || vpc.securityGroupNames == null) {
+      throw new Error("Serverless file is not configured correctly. Please see README for proper setup.")
+    }
+  }
+
+  /**
+   * Setup AWS resources
+   */
+  public initAWSResources (): void {
+    const credentials = this.serverless.providers.aws.getCredentials()
+    credentials.region = this.serverless.providers.aws.getRegion()
+    this.ec2Wrapper = new EC2Wrapper(credentials)
+  }
+
+  /**
+   * Gets the desired vpc with the designated subnets and security groups
+   * that were set in serverless config file
+   * @returns {Promise<object>}
+   */
+  public async updateVpcConfig (): Promise<object> {
+    this.serverless.cli.log("Updating VPC config...")
+
+    const service = this.serverless.service
+
+    const vpcId = await this.ec2Wrapper.getVpcId(service.custom.vpc.vpcName)
+    const subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, service.custom.vpc.subnetNames)
+    const securityGroupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, service.custom.vpc.securityGroupNames)
+
+    service.provider.vpc = {
+      subnetIds: subnetIds,
+      securityGroupIds: securityGroupIds
     }
 
-    /**
-     * Gets the desired vpc with the designated subnets and security groups
-     * that were set in serverless config file
-     * @returns {Promise}
-     */
-    updateVpcConfig () {
-      const awsCreds = this.serverless.providers.aws.getCredentials()
-      awsCreds.region = this.serverless.providers.aws.getRegion()
-
-      AWS.config.update(awsCreds)
-      AWS.config.update({
-        maxRetries: 20
-      })
-
-      this.ec2 = new AWS.EC2()
-
-      this.serverless.cli.log("Updating VPC config...")
-      const service = this.serverless.service
-
-      // Checks if the serverless file is setup correctly
-      if (service.custom.vpc.vpcName == null || service.custom.vpc.subnetNames == null ||
-            service.custom.vpc.securityGroupNames == null) {
-        throw new Error("Serverless file is not configured correctly. Please see README for proper setup.")
-      }
-
-      // Returns the vpc with subnet and security group ids
-      return this.getVpcId(service.custom.vpc.vpcName).then((vpcId) => {
-        const promises = [
-          this.getSubnetIds(vpcId, service.custom.vpc.subnetNames),
-          this.getSecurityGroupIds(vpcId, service.custom.vpc.securityGroupNames)
-        ]
-
-        return (Promise.all(promises).then((values) => {
-          // Checks to see if either subnets or security gropus returned nothing
-          if (!values[0].length || !values[1].length) {
-            throw new Error("Vpc was not set")
-          }
-
-          // Sets the serverless's vpc config
-          service.provider.vpc = {
-            subnetIds: values[0],
-            securityGroupIds: values[1]
-          }
-
-          return service.provider.vpc
-        }))
-      }).catch((err) => {
-        throw new Error(`Could not set vpc config. Message: ${err}`)
-      })
-    }
-
-    /**
-     *  Returns the promise that contains the vpc-id
-     * @param {string} vpcName
-     * @returns {Promise.<string>}
-     */
-    getVpcId (vpcName) {
-      const vpcParams = {
-        Filters: [{
-          Name: "tag:Name",
-          Values: [vpcName]
-        }]
-      }
-
-      return this.ec2.describeVpcs(vpcParams).promise().then((data) => {
-        // If it cannot find a vpc, vpc does not exist for that name
-        if (data.Vpcs.length === 0) {
-          throw new Error("Invalid vpc name, it does not exist")
-        }
-        return data.Vpcs[0].VpcId
-      })
-    }
-
-    /**
-     * Returns the promise that contains the subnet IDs
-     *
-     * @param {string} vpcId
-     * @param {string[]} subnetNames
-     * @returns {Promise.<string[]>}
-     */
-    getSubnetIds (vpcId, subnetNames) {
-      const paramsSubnet = {
-        Filters: [{
-          Name: "vpc-id",
-          Values: [vpcId]
-        }, {
-          Name: "tag:Name",
-          Values: subnetNames
-        }]
-      }
-
-      return this.ec2.describeSubnets(paramsSubnet).promise().then((data) => {
-        if (data.Subnets.length === 0) {
-          throw new Error("Invalid subnet name, it does not exist")
-        }
-
-        if (paramsSubnet.Filters[1].Values.length !== data.Subnets.length) {
-          // Creates a list of the valid subnets
-          const validSubnets = data.Subnets.reduce((accum, val) => {
-            const nameTag = val.Tags.find(tag => tag.Key === "Name")
-
-            if (nameTag) {
-              accum.push(nameTag.Value)
-            }
-
-            return accum
-          }, [])
-          // Compares the valid subents with ones given to find invalid subnet names
-          const missingSubnets = _.difference(paramsSubnet.Filters[1].Values, validSubnets)
-
-          throw new Error(`Not all subnets were registered: ${missingSubnets}`)
-        }
-
-        return data.Subnets.map(obj => obj.SubnetId)
-      })
-    }
-
-    /**
-     *  Returns the promise that contains the security group IDs
-     * @param {string} vpcId
-     * @param {string[]} securityGroupNames
-     * @returns {Promise.<string[]>}
-     */
-    getSecurityGroupIds (vpcId, securityGroupNames) {
-      const paramsSecurity = {
-        Filters: [{
-          Name: "vpc-id",
-          Values: [vpcId]
-        }, {
-          Name: "group-name",
-          Values: securityGroupNames
-        }]
-
-      }
-
-      return this.ec2.describeSecurityGroups(paramsSecurity).promise().then((data) => {
-        if (data.SecurityGroups.length === 0) {
-          throw new Error("Invalid security group name, it does not exist")
-        }
-
-        if (paramsSecurity.Filters[1].Values.length !== data.SecurityGroups.length) {
-          const validGroups = data.SecurityGroups.map(obj => obj.GroupName)
-          const missingGroups = _.difference(paramsSecurity.Filters[1].Values, validGroups)
-          throw new Error(`Not all security group were registered: ${missingGroups}`)
-        }
-
-        return data.SecurityGroups.map(obj => obj.GroupId)
-      })
-    }
+    return service.provider.vpc
+  }
 }
 
 export = VPCPlugin;
