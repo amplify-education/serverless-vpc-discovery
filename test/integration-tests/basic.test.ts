@@ -1,7 +1,7 @@
 "use strict"
 
 import "mocha"
-import { getRandomString, TEST_DOMAIN } from "./base"
+import { getRandomString } from "./base"
 import * as utilities from "./test-utilities"
 
 const CONFIGS_FOLDER = "basic"
@@ -15,13 +15,12 @@ describe("Integration Tests", function () {
   it("Basic example", async () => {
     const testName = "basic-example"
     const configFolder = `${CONFIGS_FOLDER}/${testName}`
-    const testURL = `${testName}-${RANDOM_STRING}.${TEST_DOMAIN}`
     // Perform sequence of commands to replicate basepath mapping issue
     try {
       await utilities.createTempDir(TEMP_DIR, configFolder)
       await utilities.slsDeploy(TEMP_DIR, RANDOM_STRING)
     } finally {
-      await utilities.destroyResources(testURL, RANDOM_STRING)
+      await utilities.slsRemove(TEMP_DIR, RANDOM_STRING)
     }
   })
 })

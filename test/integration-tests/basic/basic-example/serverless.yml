@@ -21,13 +21,14 @@ plugins:
   - serverless-vpc-discovery
 
 custom:
-  customDomain:
-    stage: ${self:provider.stage}
-    domainName: apigateway-with-export-${opt:RANDOM_STRING}.${env:TEST_DOMAIN}
-    autoDomain: true
-    basePath: hello-world
-    endpointType: regional
-    createRoute53Record: false
+  vpc:
+    vpcName: ${env:TEST_VPC_NAME}
+    subnetNames:
+      - ${env:TEST_VPC_NAME}_intranet_us-west-2a
+      - ${env:TEST_VPC_NAME}_intranet_us-west-2b
+      - ${env:TEST_VPC_NAME}_intranet_us-west-2c
+    securityGroupNames:
+      - ${env:TEST_VPC_NAME}_intranet
 
 package:
   exclude:

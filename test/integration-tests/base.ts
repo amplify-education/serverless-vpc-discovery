@@ -1,8 +1,8 @@
-import { randomstring } from "randomstring"
+import randomstring from "randomstring"
 
-const TEST_DOMAIN = process.env.TEST_DOMAIN
+const TEST_VPC_NAME = process.env.TEST_VPC_NAME
 
-if (!TEST_DOMAIN) {
+if (!TEST_VPC_NAME) {
   throw new Error("TEST_DOMAIN environment variable not set")
 }
 
@@ -16,5 +16,5 @@ function getRandomString (): string {
 
 export {
   getRandomString,
-  TEST_DOMAIN
+  TEST_VPC_NAME
 }
