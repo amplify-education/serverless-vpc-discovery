@@ -39,11 +39,11 @@ async function createTempDir (tempDir, folderName) {
 /**
  * Runs `sls deploy` for the given folder
  * @param tempDir
- * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
+ * @param identifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>}
  */
-function slsDeploy (tempDir, domainIdentifier) {
-  return exec(`cd ${tempDir} && $(npm bin)/serverless deploy --RANDOM_STRING ${domainIdentifier}`)
+function slsDeploy (tempDir, identifier) {
+  return exec(`cd ${tempDir} && $(npm bin)/serverless deploy --RANDOM_STRING ${identifier}`)
 }
 
 /**
@@ -59,14 +59,14 @@ function slsRemove (tempDir, domainIdentifier) {
 /**
  * Wraps deletion of testing resources.
  * @param url
- * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
+ * @param identifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>} Resolves if successfully executed, else rejects
  */
-async function destroyResources (url, domainIdentifier) {
+async function destroyResources (url, identifier) {
   try {
     console.debug(`\tCleaning Up Resources for ${url}`)
-    const tempDir = `~/tmp/domain-manager-test-${domainIdentifier}`
-    await removeLambdas(tempDir, domainIdentifier)
+    const tempDir = `~/tmp/domain-manager-test-${identifier}`
+    await removeLambdas(tempDir, identifier)
     await exec(`rm -rf ${tempDir}`)
 
     console.debug("\tResources Cleaned Up")
@@ -76,13 +76,12 @@ async function destroyResources (url, domainIdentifier) {
 }
 
 /**
- * Runs both `sls delete_domain` and `sls remove`
  * @param tempDir temp directory where code is being run from
- * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
+ * @param identifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>}
  */
-async function removeLambdas (tempDir, domainIdentifier) {
-  await slsRemove(tempDir, domainIdentifier)
+async function removeLambdas (tempDir, identifier) {
+  await slsRemove(tempDir, identifier)
 }
 
 export {

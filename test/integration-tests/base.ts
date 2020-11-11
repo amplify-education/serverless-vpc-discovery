@@ -3,7 +3,7 @@ import randomstring from "randomstring"
 const TEST_VPC_NAME = process.env.TEST_VPC_NAME
 
 if (!TEST_VPC_NAME) {
-  throw new Error("TEST_DOMAIN environment variable not set")
+  throw new Error("TEST_VPC_NAME environment variable not set")
 }
 
 function getRandomString (): string {
