@@ -22,9 +22,7 @@ class VPCPlugin {
    * @param lifecycleFunc lifecycle function that actually does desired action
    */
   public async hookWrapper (lifecycleFunc: any) {
-    // check if `customDomain` or `customDomains` config exists
     this.validateConfigExists()
-    // setup AWS resources
     this.initAWSResources()
     return await lifecycleFunc.call(this)
   }
