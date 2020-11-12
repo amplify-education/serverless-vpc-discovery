@@ -62,7 +62,7 @@ If there is an error update the node_module inside the serverless-vpc-discovery 
 npm install
 ```
 
-To run integration tests, set an environment variable TEST_DOMAIN to the domain you will be testing for (i.e. example.com if creating a domain for api.example.com). Then,
+To run integration tests, set an environment variable TEST_VPC_NAME to the VPC you will be testing for. Then,
 ```
 export AWS_PROFILE=your_profile
 export TEST_VPC_NAME=vpc_name
