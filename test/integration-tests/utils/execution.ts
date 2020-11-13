@@ -49,45 +49,16 @@ function slsDeploy (tempDir, identifier) {
 /**
  * Runs `sls remove` for the given folder
  * @param tempDir
- * @param domainIdentifier Random alphanumeric string to identify specific run of integration tests.
- * @returns {Promise<void>}
- */
-function slsRemove (tempDir, domainIdentifier) {
-  return exec(`cd ${tempDir} && $(npm bin)/serverless remove --RANDOM_STRING ${domainIdentifier}`)
-}
-
-/**
- * Wraps deletion of testing resources.
- * @param url
- * @param identifier Random alphanumeric string to identify specific run of integration tests.
- * @returns {Promise<void>} Resolves if successfully executed, else rejects
- */
-async function destroyResources (url, identifier) {
-  try {
-    console.debug(`\tCleaning Up Resources for ${url}`)
-    const tempDir = `~/tmp/domain-manager-test-${identifier}`
-    await removeLambdas(tempDir, identifier)
-    await exec(`rm -rf ${tempDir}`)
-
-    console.debug("\tResources Cleaned Up")
-  } catch (e) {
-    console.debug("\tFailed to Clean Up Resources")
-  }
-}
-
-/**
- * @param tempDir temp directory where code is being run from
  * @param identifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>}
  */
-async function removeLambdas (tempDir, identifier) {
-  await slsRemove(tempDir, identifier)
+function slsRemove (tempDir, identifier) {
+  return exec(`cd ${tempDir} && $(npm bin)/serverless remove --RANDOM_STRING ${identifier}`)
 }
 
 export {
   createTempDir,
   exec,
   slsDeploy,
-  slsRemove,
-  destroyResources
+  slsRemove
 }
