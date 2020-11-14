@@ -1,6 +1,7 @@
 "use strict"
 
-import { ServerlessInstance } from "./types"
+import { ServerlessInstance, VPC, VPCDiscovery } from "./types"
+import Globals from "./globals"
 import EC2Wrapper = require("./aws/ec2-wrapper")
 
 class VPCPlugin {
@@ -32,10 +33,21 @@ class VPCPlugin {
    */
   public validateConfigExists (): void {
     const config = this.serverless.service.custom
-    const vpc = config && config.vpc
+    const vpc = config && (config.vpcDiscovery || config.vpc)
     // Checks if the serverless file is setup correctly
-    if (!vpc || vpc.vpcName == null || vpc.subnetNames == null || vpc.securityGroupNames == null) {
-      throw new Error("Serverless file is not configured correctly. Please see README for proper setup.")
+    if (!vpc || vpc.vpcName == null || (vpc.subnetNames == null && vpc.securityGroupNames == null)) {
+      throw new Error(
+        "Serverless file is not configured correctly. " +
+        "You must specify the vpcName and at least one of subnetNames or securityGroupNames. " +
+        "Please see README for proper setup."
+      )
+    }
+    if (!config.vpcDiscovery) {
+      config.vpcDiscovery = config.vpc
+      Globals.logWarning(
+        "The `vpc` option of `custom` config is deprecated and will be removed in the future. " +
+        "Please use `vpcDiscovery` option instead."
+      )
     }
   }
 
@@ -49,25 +61,64 @@ class VPCPlugin {
   }
 
   /**
+   * Updates functions vpc config
+   * @returns {Promise<object>}
+   */
+  public async updateVpcConfig (): Promise<object> {
+    Globals.logInfo("Updating VPC config...")
+    const service = this.serverless.service
+
+    // Sets the serverless's vpc config
+    if (service.functions) {
+      let vpc = await this.getVpcConfig(service.custom.vpcDiscovery)
+      for (const fName of Object.keys(service.functions)) {
+        const f = service.functions[fName]
+        const vpcConf = f.vpcDiscovery
+        if (vpcConf) {
+          if (!vpcConf.disabled) {
+            delete f.vpc
+            return
+          }
+
+          if (vpcConf.vpcName == null || (vpcConf.subnetNames == null && vpcConf.securityGroupNames == null)) {
+            Globals.logWarning(
+              `The function ${fName} is not configured correctly.` +
+              "Please see README for proper setup. The provider vpc config are applied"
+            )
+          } else {
+            vpc = await this.getVpcConfig(vpcConf)
+          }
+        }
+        if (f.vpc && !vpc.subnetIds && vpc.subnetIds) {
+          f.vpc.subnetIds = vpc.subnetIds
+        }
+        if (f.vpc && !vpc.securityGroupIds && vpc.securityGroupIds) {
+          f.vpc.securityGroupIds = vpc.securityGroupIds
+        }
+      }
+    }
+
+    return service.functions
+  }
+
+  /**
    * Gets the desired vpc with the designated subnets and security groups
    * that were set in serverless config file
    * @returns {Promise<object>}
    */
-  public async updateVpcConfig (): Promise<object> {
-    this.serverless.cli.log("Updating VPC config...")
-
-    const service = this.serverless.service
-
-    const vpcId = await this.ec2Wrapper.getVpcId(service.custom.vpc.vpcName)
-    const subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, service.custom.vpc.subnetNames)
-    const securityGroupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, service.custom.vpc.securityGroupNames)
-
-    service.provider.vpc = {
-      subnetIds: subnetIds,
-      securityGroupIds: securityGroupIds
+  public async getVpcConfig (vpcDiscovery: VPCDiscovery): Promise<VPC> {
+    const vpc = {
+      subnetIds: undefined,
+      securityGroupIds: undefined
     }
-
-    return service.provider.vpc
+    const vpcId = await this.ec2Wrapper.getVpcId(vpcDiscovery.vpcName)
+    if (vpcDiscovery.subnetNames) {
+      vpc.subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, vpcDiscovery.subnetNames)
+    }
+    if (vpcDiscovery.subnetNames) {
+      vpc.securityGroupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, vpcDiscovery.securityGroupNames)
+    }
+    return vpc
   }
 }
 

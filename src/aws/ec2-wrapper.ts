@@ -65,13 +65,20 @@ class EC2Wrapper {
       throw new Error("Invalid subnet name, it does not exist")
     }
 
-    const missingSubnets = subnets.filter((subnet) => {
-      const nameTag = subnet.Tags.find(tag => tag.Key === "Name")
-      return subnetNames.indexOf(nameTag.Value) === -1
+    const missingSubnetNames = subnetNames.filter(subnetName => {
+      // collect subnets by name
+      const subnetsByName = subnets.filter((subnet) => {
+        const nameTag = subnet.Tags.find(tag => tag.Key === "Name")
+        return nameTag.Value === subnetName
+      })
+      return subnetsByName.length === 0
     })
 
-    if (missingSubnets.length) {
-      throw new Error(`Not all subnets were registered: ${missingSubnets}`)
+    if (missingSubnetNames.length) {
+      throw new Error(
+        `Subnets do not exist for names: ${missingSubnetNames}. ` +
+        "Please check if the names are correct or remove it."
+      )
     }
 
     return subnets.map(subnet => subnet.SubnetId)
@@ -106,12 +113,19 @@ class EC2Wrapper {
       throw new Error("Invalid security group name, it does not exist")
     }
 
-    const missingGroups = securityGroups.filter((group) => {
-      return securityGroupNames.indexOf(group.GroupName) === -1
+    const missingGroupsNames = securityGroupNames.filter(groupName => {
+      // collect subnets by name
+      const securityGroupsByName = securityGroups.filter((securityGroup) => {
+        return securityGroup.GroupName === groupName
+      })
+      return securityGroupsByName.length === 0
     })
 
-    if (missingGroups.length) {
-      throw new Error(`Not all security group were registered: ${missingGroups}`)
+    if (missingGroupsNames.length) {
+      throw new Error(
+        `Security groups do not exists for names: ${missingGroupsNames}. ` +
+        "Please check if the names are correct or remove it."
+      )
     }
 
     return securityGroups.map(group => group.GroupId)
