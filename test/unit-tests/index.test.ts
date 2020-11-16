@@ -34,7 +34,7 @@ const constructPlugin = (vpcConfig) => {
         funcTest: {}
       },
       custom: {
-        vpc: vpcConfig
+        vpcDiscovery: vpcConfig
       }
     },
     cli: {

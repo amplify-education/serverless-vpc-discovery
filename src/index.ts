@@ -72,39 +72,61 @@ class VPCPlugin {
     // Sets the serverless's vpc config
     if (service.functions) {
       // get basic VPC config
-      const basicVpc = await this.getVpcConfig(service.custom.vpcDiscovery)
+      const basicVPCDiscovery = await this.getVpcConfig(service.custom.vpcDiscovery)
       // loop through the functions and update VPC config
       for (const fName of Object.keys(service.functions)) {
         const f = service.functions[fName]
-        const vpcConf = f.vpcDiscovery
-        let vpc = basicVpc
+        const fVPCDiscovery = f.vpcDiscovery
 
+        if (typeof fVPCDiscovery === "boolean" && !fVPCDiscovery) {
+          // skip vpc setup for `vpcDiscovery=false` option
+          Globals.logInfo(`Skipping VPC config for the function '${fName}'`)
+          continue
+        }
+
+        const vpcDiscovery = basicVPCDiscovery
         // check vpcDiscovery config
-        if (vpcConf) {
-          // skip vpc setup for `disabled` option
-          if (vpcConf.disabled) {
-            continue
-          }
+        if (fVPCDiscovery) {
+          const noSubnetsAndGroups = fVPCDiscovery.subnetNames == null && fVPCDiscovery.securityGroupNames == null
           // validate vpcDiscovery config options
-          if (vpcConf.vpcName == null || (vpcConf.subnetNames == null && vpcConf.securityGroupNames == null)) {
+          if (fVPCDiscovery.vpcName == null || noSubnetsAndGroups) {
             Globals.logWarning(
               `The function '${fName}' is not configured correctly.` +
-              "Please see README for proper setup. The provider vpc config are applied"
+              "Please see README for proper setup. The basic vpc config are applied"
             )
           } else {
-            // override basic config to specific for the function
-            vpc = await this.getVpcConfig(vpcConf)
+            // merge basic config to specific for the function
+            Object.assign(vpcDiscovery, await this.getVpcConfig(fVPCDiscovery))
           }
         }
+
         // init vpc empty config in case not exists
         f.vpc = f.vpc || {}
-        // set vpc.subnetIds
-        if (!f.vpc.subnetIds && vpc.subnetIds) {
-          f.vpc.subnetIds = vpc.subnetIds
+
+        // log warning in case vpc.subnetIds and vpcDiscovery.subnetNames are specified.
+        if (f.vpc.subnetIds && fVPCDiscovery.subnetNames) {
+          Globals.logWarning(
+            `vpc.subnetIds' are specified for the function '${fName}' 
+            and overrides 'vpcDiscovery.subnetNames' discovery config.`
+          )
         }
+
+        // set vpc.subnetIds
+        if (!f.vpc.subnetIds && vpcDiscovery.subnetIds) {
+          f.vpc.subnetIds = vpcDiscovery.subnetIds
+        }
+
+        // log warning in case vpc.securityGroupIds and vpcDiscovery.securityGroupNames are specified.
+        if (f.vpc.securityGroupIds && fVPCDiscovery.securityGroupNames) {
+          Globals.logWarning(
+            `vpc.securityGroupIds' are specified for the function '${fName}' 
+            and overrides 'vpcDiscovery.securityGroupNames' discovery config.`
+          )
+        }
+
         // set vpc.securityGroupIds
-        if (!f.vpc.securityGroupIds && vpc.securityGroupIds) {
-          f.vpc.securityGroupIds = vpc.securityGroupIds
+        if (!f.vpc.securityGroupIds && vpcDiscovery.securityGroupIds) {
+          f.vpc.securityGroupIds = vpcDiscovery.securityGroupIds
         }
       }
     }
@@ -118,13 +140,15 @@ class VPCPlugin {
    * @returns {Promise<object>}
    */
   public async getVpcConfig (vpcDiscovery: VPCDiscovery): Promise<VPC> {
-    const vpc = { subnetIds: undefined, securityGroupIds: undefined }
+    const vpc = {}
     const vpcId = await this.ec2Wrapper.getVpcId(vpcDiscovery.vpcName)
     if (vpcDiscovery.subnetNames) {
-      vpc.subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, vpcDiscovery.subnetNames)
+      const subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, vpcDiscovery.subnetNames)
+      Object.assign(vpc, { subnetIds: subnetIds })
     }
-    if (vpcDiscovery.subnetNames) {
-      vpc.securityGroupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, vpcDiscovery.securityGroupNames)
+    if (vpcDiscovery.securityGroupNames) {
+      const securityGroupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, vpcDiscovery.securityGroupNames)
+      Object.assign(vpc, { securityGroupIds: securityGroupIds })
     }
     return vpc
   }

@@ -40,13 +40,40 @@ Then make the following edits to your serverless.yaml file:
 plugins:
   - serverless-vpc-discovery
 
+# required config
 custom:
-  vpc:
+  vpcDiscovery:
     vpcName: '${opt:env}'
-    subnetNames:
+    subnetNames: # optional if securityGroupNames are specified
       - '${opt:env}_NAME OF SUBNET'
-    securityGroupNames:
+    securityGroupNames: # optional if subnetNames are specified
       - '${opt:env}_NAME OF SECURITY GROUP'
+
+# (Optional) set a config for the specific function
+functions:
+  example:
+    handler: handler.example
+    # inherit basic config
+  example1:
+    handler: handler.example
+    # skip vpc configuration
+    vpcDiscovery: false
+  example2:
+    handler: handler.example
+    # inherit basic subnet ids and use func security group ids
+    vpcDiscovery:
+      vpcName: '${opt:env}'
+      securityGroupNames:
+        - '${opt:env}_NAME OF SECURITY GROUP'
+  example3:
+    handler: handler.example
+    # inherit basic subnet ids and use func security group ids
+    vpcDiscovery:
+      vpcName: '${opt:env}'
+      subnetNames: # optional if securityGroupNames are specified
+        - '${opt:env}_NAME OF SUBNET'
+      securityGroupNames:  # optional if subnetNames are specified
+        - '${opt:env}_NAME OF SECURITY GROUP'        
 ```
 > NOTE: The naming pattern we used here was building off the vpc name for the subnet and security group by extending it with the the subnet and security group name. This makes it easier to switch to different vpcs by changing the environment variable in the command line
 
