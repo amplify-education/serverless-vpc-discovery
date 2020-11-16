@@ -41,10 +41,7 @@ export default class Globals {
    * @param debug: if true then show log only if SLS_DEBUG enabled on else anytime.
    * By default debug mode on and a message will be printed for SLS_DEBUG enabled.
    */
-  public static logError (message: any, debug?: boolean): void {
-    if (debug === undefined) {
-      debug = true;
-    }
+  public static logError (message: any, debug: boolean = true): void {
     const canLog = (debug && process.env.SLS_DEBUG) || !debug;
     if (canLog) {
       Globals.cliLog("Error:", message);
