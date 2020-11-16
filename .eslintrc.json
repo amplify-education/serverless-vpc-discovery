@@ -27,6 +27,10 @@
     "semi": [
       "error",
       "always"
+    ],
+    "arrow-parens": [
+      "error",
+      "always"
     ]
   }
 }

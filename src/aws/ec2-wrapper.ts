@@ -68,7 +68,7 @@ class EC2Wrapper {
     const missingSubnetNames = subnetNames.filter((subnetName) => {
       // collect subnets by name
       const subnetsByName = subnets.filter((subnet) => {
-        const nameTag = subnet.Tags.find(tag => tag.Key === "Name");
+        const nameTag = subnet.Tags.find((tag) => tag.Key === "Name");
         return nameTag.Value === subnetName;
       });
       return subnetsByName.length === 0;
@@ -81,7 +81,7 @@ class EC2Wrapper {
       );
     }
 
-    return subnets.map(subnet => subnet.SubnetId);
+    return subnets.map((subnet) => subnet.SubnetId);
   }
 
   /**
@@ -113,7 +113,7 @@ class EC2Wrapper {
       throw new Error("Invalid security group name, it does not exist");
     }
 
-    const missingGroupsNames = securityGroupNames.filter(groupName => {
+    const missingGroupsNames = securityGroupNames.filter((groupName) => {
       // collect subnets by name
       const securityGroupsByName = securityGroups.filter((securityGroup) => {
         return securityGroup.GroupName === groupName;
@@ -128,7 +128,7 @@ class EC2Wrapper {
       );
     }
 
-    return securityGroups.map(group => group.GroupId);
+    return securityGroups.map((group) => group.GroupId);
   }
 }
 
