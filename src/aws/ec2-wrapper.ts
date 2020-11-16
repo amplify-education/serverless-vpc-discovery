@@ -1,11 +1,11 @@
-import { EC2 } from "aws-sdk"
-import { getAWSPagedResults } from "../utils"
+import { EC2 } from "aws-sdk";
+import { getAWSPagedResults } from "../utils";
 
 class EC2Wrapper {
   public ec2: EC2
 
   constructor (credentials: any) {
-    this.ec2 = new EC2(credentials)
+    this.ec2 = new EC2(credentials);
   }
 
   /**
@@ -19,19 +19,19 @@ class EC2Wrapper {
         Name: "tag:Name",
         Values: [vpcName]
       }]
-    }
-    const vpcs = await getAWSPagedResults(
+    };
+    const vpcItems = await getAWSPagedResults(
       this.ec2,
       "describeVpcs",
       "Vpcs",
       "NextToken",
       "NextToken",
       params
-    )
-    if (vpcs.length === 0) {
-      throw new Error("Invalid vpc name, it does not exist")
+    );
+    if (vpcItems.length === 0) {
+      throw new Error("Invalid vpc name, it does not exist");
     }
-    return vpcs[0].VpcId
+    return vpcItems[0].VpcId;
   }
 
   /**
@@ -50,7 +50,7 @@ class EC2Wrapper {
         Name: "tag:Name",
         Values: subnetNames
       }]
-    }
+    };
 
     const subnets = await getAWSPagedResults(
       this.ec2,
@@ -59,29 +59,29 @@ class EC2Wrapper {
       "NextToken",
       "NextToken",
       params
-    )
+    );
 
     if (subnets.length === 0) {
-      throw new Error("Invalid subnet name, it does not exist")
+      throw new Error("Invalid subnet name, it does not exist");
     }
 
-    const missingSubnetNames = subnetNames.filter(subnetName => {
+    const missingSubnetNames = subnetNames.filter((subnetName) => {
       // collect subnets by name
       const subnetsByName = subnets.filter((subnet) => {
-        const nameTag = subnet.Tags.find(tag => tag.Key === "Name")
-        return nameTag.Value === subnetName
-      })
-      return subnetsByName.length === 0
-    })
+        const nameTag = subnet.Tags.find(tag => tag.Key === "Name");
+        return nameTag.Value === subnetName;
+      });
+      return subnetsByName.length === 0;
+    });
 
     if (missingSubnetNames.length) {
       throw new Error(
         `Subnets do not exist for the names: ${missingSubnetNames}. ` +
         "Please check the names are correct or remove it."
-      )
+      );
     }
 
-    return subnets.map(subnet => subnet.SubnetId)
+    return subnets.map(subnet => subnet.SubnetId);
   }
 
   /**
@@ -99,7 +99,7 @@ class EC2Wrapper {
         Name: "group-name",
         Values: securityGroupNames
       }]
-    }
+    };
     const securityGroups = await getAWSPagedResults(
       this.ec2,
       "describeSecurityGroups",
@@ -107,28 +107,28 @@ class EC2Wrapper {
       "NextToken",
       "NextToken",
       params
-    )
+    );
 
     if (securityGroups.length === 0) {
-      throw new Error("Invalid security group name, it does not exist")
+      throw new Error("Invalid security group name, it does not exist");
     }
 
     const missingGroupsNames = securityGroupNames.filter(groupName => {
       // collect subnets by name
       const securityGroupsByName = securityGroups.filter((securityGroup) => {
-        return securityGroup.GroupName === groupName
-      })
-      return securityGroupsByName.length === 0
-    })
+        return securityGroup.GroupName === groupName;
+      });
+      return securityGroupsByName.length === 0;
+    });
 
     if (missingGroupsNames.length) {
       throw new Error(
         `Security groups do not exist for the names: ${missingGroupsNames}. ` +
         "Please check the names are correct or remove it."
-      )
+      );
     }
 
-    return securityGroups.map(group => group.GroupId)
+    return securityGroups.map(group => group.GroupId);
   }
 }
 

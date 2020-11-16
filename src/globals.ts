@@ -1,4 +1,4 @@
-import { ServerlessInstance } from "./types"
+import { ServerlessInstance } from "./types";
 
 export default class Globals {
   public static pluginName = "Serverless VPC Discovery";
@@ -6,7 +6,7 @@ export default class Globals {
   public static serverless: ServerlessInstance;
 
   public static cliLog (prefix: string, message: string): void {
-    Globals.serverless.cli.log(`${prefix} ${message}`, Globals.pluginName)
+    Globals.serverless.cli.log(`${prefix} ${message}`, Globals.pluginName);
   }
 
   /**
@@ -16,9 +16,9 @@ export default class Globals {
    * By default debug mode off and a message printed for each call.
    */
   public static logInfo (message: any, debug = false): void {
-    const canLog = (debug && process.env.SLS_DEBUG) || !debug
+    const canLog = (debug && process.env.SLS_DEBUG) || !debug;
     if (canLog) {
-      Globals.cliLog("Info:", message)
+      Globals.cliLog("Info:", message);
     }
   }
 
@@ -29,9 +29,9 @@ export default class Globals {
    * By default debug mode off and a message printed for each call.
    */
   public static logWarning (message: any, debug = false): void {
-    const canLog = (debug && process.env.SLS_DEBUG) || !debug
+    const canLog = (debug && process.env.SLS_DEBUG) || !debug;
     if (canLog) {
-      Globals.cliLog("WARNING:", message)
+      Globals.cliLog("WARNING:", message);
     }
   }
 
@@ -43,11 +43,11 @@ export default class Globals {
    */
   public static logError (message: any, debug?: boolean): void {
     if (debug === undefined) {
-      debug = true
+      debug = true;
     }
-    const canLog = (debug && process.env.SLS_DEBUG) || !debug
+    const canLog = (debug && process.env.SLS_DEBUG) || !debug;
     if (canLog) {
-      Globals.cliLog("Error:", message)
+      Globals.cliLog("Error:", message);
     }
   }
 }
