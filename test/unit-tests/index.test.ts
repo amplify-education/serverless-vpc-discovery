@@ -14,7 +14,7 @@ const testCreds = {
   secretAccessKey: "test_secret",
   sessionToken: "test_session"
 }
-const vpc = "ci"
+const vpc = "test"
 const subnets = [
   "test_subnet_1",
   "test_subnet_2",
@@ -29,6 +29,9 @@ const constructPlugin = (vpcConfig) => {
     service: {
       provider: {
         region: "us-moon-1"
+      },
+      functions: {
+        funcTest: {}
       },
       custom: {
         vpc: vpcConfig
@@ -83,13 +86,18 @@ describe("Given a vpc,", () => {
       subnetNames: subnets,
       securityGroupNames: securityGroups
     })
+    plugin.validateConfigExists()
     plugin.initAWSResources()
-
+    const expectedResult = {
+      funcTest: {
+        vpc: {
+          securityGroupIds: ["sg-test"],
+          subnetIds: ["subnet-test-1", "subnet-test-2", "subnet-test-3"]
+        }
+      }
+    }
     return plugin.updateFunctionsVpcConfig().then((data) => {
-      expect(data).to.eql({
-        securityGroupIds: ["sg-test"],
-        subnetIds: ["subnet-test-1", "subnet-test-2", "subnet-test-3"]
-      })
+      expect(data).to.eql(expectedResult)
     })
   })
 
@@ -169,6 +177,7 @@ describe("Catching errors in updateVpcConfig ", () => {
       subnetNames: subnets,
       securityGroupNames: securityGroups
     })
+    plugin.validateConfigExists()
     plugin.initAWSResources()
     return plugin.updateFunctionsVpcConfig().then(() => {
       throw new Error("Test has failed. updateVpcConfig did not catch errors.")
@@ -187,7 +196,9 @@ describe("Catching errors in updateVpcConfig ", () => {
     try {
       plugin.validateConfigExists()
     } catch (err) {
-      const expectedErrorMessage = "Serverless file is not configured correctly. Please see README for proper setup."
+      const expectedErrorMessage = "Serverless file is not configured correctly. " +
+        "You must specify the vpcName and at least one of subnetNames or securityGroupNames. " +
+        "Please see README for proper setup."
       expect(err.message).to.equal(expectedErrorMessage)
       return true
     }
