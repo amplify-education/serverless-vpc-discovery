@@ -140,15 +140,13 @@ class VPCPlugin {
    * @returns {Promise<object>}
    */
   public async getVpcConfig (vpcDiscovery: VPCDiscovery): Promise<VPC> {
-    const vpc = {};
+    const vpc: VPC = {};
     const vpcId = await this.ec2Wrapper.getVpcId(vpcDiscovery.vpcName);
     if (vpcDiscovery.subnetNames) {
-      const subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, vpcDiscovery.subnetNames);
-      Object.assign(vpc, { subnetIds: subnetIds });
+      vpc.subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, vpcDiscovery.subnetNames);
     }
     if (vpcDiscovery.securityGroupNames) {
-      const securityGroupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, vpcDiscovery.securityGroupNames);
-      Object.assign(vpc, { securityGroupIds: securityGroupIds });
+      vpc.securityGroupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, vpcDiscovery.securityGroupNames);
     }
     return vpc;
   }
