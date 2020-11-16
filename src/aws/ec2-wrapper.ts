@@ -76,8 +76,8 @@ class EC2Wrapper {
 
     if (missingSubnetNames.length) {
       throw new Error(
-        `Subnets do not exist for names: ${missingSubnetNames}. ` +
-        "Please check if the names are correct or remove it."
+        `Subnets do not exist for the names: ${missingSubnetNames}. ` +
+        "Please check the names are correct or remove it."
       )
     }
 
@@ -123,8 +123,8 @@ class EC2Wrapper {
 
     if (missingGroupsNames.length) {
       throw new Error(
-        `Security groups do not exists for names: ${missingGroupsNames}. ` +
-        "Please check if the names are correct or remove it."
+        `Security groups do not exist for the names: ${missingGroupsNames}. ` +
+        "Please check the names are correct or remove it."
       )
     }
 

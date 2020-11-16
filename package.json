@@ -9,8 +9,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/amplify-education/serverless-vpc-discovery"
+    "url": "git+https://github.com/amplify-education/serverless-vpc-discovery.git"
   },
+  "bugs": {
+    "url": "https://github.com/amplify-education/serverless-vpc-discovery/issues"
+  },
+  "homepage": "https://github.com/amplify-education/serverless-vpc-discovery#readme",
   "keywords": [
     "serverless discovery VPC",
     "serverless plugins",

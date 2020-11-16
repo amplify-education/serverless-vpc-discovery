@@ -11,6 +11,7 @@ class VPCPlugin {
 
   constructor (serverless) {
     this.serverless = serverless
+    Globals.serverless = serverless
 
     /* hooks are the actual code that will run when called */
     this.hooks = {
@@ -70,29 +71,37 @@ class VPCPlugin {
 
     // Sets the serverless's vpc config
     if (service.functions) {
-      let vpc = await this.getVpcConfig(service.custom.vpcDiscovery)
+      // get basic VPC config
+      const basicVpc = await this.getVpcConfig(service.custom.vpcDiscovery)
+      // loop through the functions and update VPC config
       for (const fName of Object.keys(service.functions)) {
         const f = service.functions[fName]
         const vpcConf = f.vpcDiscovery
-        if (vpcConf) {
-          if (!vpcConf.disabled) {
-            delete f.vpc
-            return
-          }
+        let vpc = basicVpc
 
+        // check vpcDiscovery config
+        if (vpcConf) {
+          // skip vpc setup for `disabled` option
+          if (vpcConf.disabled) {
+            continue
+          }
+          // validate vpcDiscovery config options
           if (vpcConf.vpcName == null || (vpcConf.subnetNames == null && vpcConf.securityGroupNames == null)) {
             Globals.logWarning(
-              `The function ${fName} is not configured correctly.` +
+              `The function '${fName}' is not configured correctly.` +
               "Please see README for proper setup. The provider vpc config are applied"
             )
           } else {
+            // override basic config to specific for the function
             vpc = await this.getVpcConfig(vpcConf)
           }
         }
-        if (f.vpc && !vpc.subnetIds && vpc.subnetIds) {
+        // init vpc empty config in case not exists
+        f.vpc = f.vpc || {}
+        if (!f.vpc.subnetIds && vpc.subnetIds) {
           f.vpc.subnetIds = vpc.subnetIds
         }
-        if (f.vpc && !vpc.securityGroupIds && vpc.securityGroupIds) {
+        if (!f.vpc.securityGroupIds && vpc.securityGroupIds) {
           f.vpc.securityGroupIds = vpc.securityGroupIds
         }
       }
