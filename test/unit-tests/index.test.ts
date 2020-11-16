@@ -85,7 +85,7 @@ describe("Given a vpc,", () => {
     })
     plugin.initAWSResources()
 
-    return plugin.updateVpcConfig().then((data) => {
+    return plugin.updateFunctionsVpcConfig().then((data) => {
       expect(data).to.eql({
         securityGroupIds: ["sg-test"],
         subnetIds: ["subnet-test-1", "subnet-test-2", "subnet-test-3"]
@@ -170,7 +170,7 @@ describe("Catching errors in updateVpcConfig ", () => {
       securityGroupNames: securityGroups
     })
     plugin.initAWSResources()
-    return plugin.updateVpcConfig().then(() => {
+    return plugin.updateFunctionsVpcConfig().then(() => {
       throw new Error("Test has failed. updateVpcConfig did not catch errors.")
     }, (err) => {
       const expectedErrorMessage = "Invalid vpc name, it does not exist"

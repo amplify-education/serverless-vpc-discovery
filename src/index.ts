@@ -15,7 +15,7 @@ class VPCPlugin {
 
     /* hooks are the actual code that will run when called */
     this.hooks = {
-      "before:package:initialize": this.hookWrapper.bind(this, this.updateVpcConfig)
+      "before:package:initialize": this.hookWrapper.bind(this, this.updateFunctionsVpcConfig)
     }
   }
 
@@ -34,20 +34,20 @@ class VPCPlugin {
    */
   public validateConfigExists (): void {
     const config = this.serverless.service.custom
-    const vpc = config && (config.vpcDiscovery || config.vpc)
+    if (!config.vpcDiscovery) {
+      config.vpcDiscovery = config.vpc
+      Globals.logWarning(
+        "The `vpc` option of `custom` config is deprecated and will be removed in the future. " +
+        "Please use `vpcDiscovery` option instead."
+      )
+    }
+    const vpc = config && config.vpcDiscovery
     // Checks if the serverless file is setup correctly
     if (!vpc || vpc.vpcName == null || (vpc.subnetNames == null && vpc.securityGroupNames == null)) {
       throw new Error(
         "Serverless file is not configured correctly. " +
         "You must specify the vpcName and at least one of subnetNames or securityGroupNames. " +
         "Please see README for proper setup."
-      )
-    }
-    if (!config.vpcDiscovery) {
-      config.vpcDiscovery = config.vpc
-      Globals.logWarning(
-        "The `vpc` option of `custom` config is deprecated and will be removed in the future. " +
-        "Please use `vpcDiscovery` option instead."
       )
     }
   }
@@ -65,7 +65,7 @@ class VPCPlugin {
    * Updates functions vpc config
    * @returns {Promise<object>}
    */
-  public async updateVpcConfig (): Promise<object> {
+  public async updateFunctionsVpcConfig (): Promise<object> {
     Globals.logInfo("Updating VPC config...")
     const service = this.serverless.service
 
@@ -98,9 +98,11 @@ class VPCPlugin {
         }
         // init vpc empty config in case not exists
         f.vpc = f.vpc || {}
+        // set vpc.subnetIds
         if (!f.vpc.subnetIds && vpc.subnetIds) {
           f.vpc.subnetIds = vpc.subnetIds
         }
+        // set vpc.securityGroupIds
         if (!f.vpc.securityGroupIds && vpc.securityGroupIds) {
           f.vpc.securityGroupIds = vpc.securityGroupIds
         }
@@ -116,10 +118,7 @@ class VPCPlugin {
    * @returns {Promise<object>}
    */
   public async getVpcConfig (vpcDiscovery: VPCDiscovery): Promise<VPC> {
-    const vpc = {
-      subnetIds: undefined,
-      securityGroupIds: undefined
-    }
+    const vpc = { subnetIds: undefined, securityGroupIds: undefined }
     const vpcId = await this.ec2Wrapper.getVpcId(vpcDiscovery.vpcName)
     if (vpcDiscovery.subnetNames) {
       vpc.subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, vpcDiscovery.subnetNames)
