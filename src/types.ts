@@ -1,28 +1,46 @@
 export interface VPC {
-    vpcName: string;
-    subnetNames: string[] | undefined;
-    securityGroupNames: string[] | undefined;
+  subnetIds?: string[];
+  securityGroupIds?: string[];
+}
+
+export interface VPCDiscovery {
+  vpcName: string;
+  subnetNames?: string[];
+  securityGroupNames?: string[];
+}
+
+export interface FuncVPCDiscovery extends VPCDiscovery {
 }
 
 export interface ServerlessInstance {
-    service: {
-        service: string
-        provider: {
-            stage: string
-            vpc: {},
-        }
-        custom: {
-            vpc: VPC | undefined
+  service: {
+    service: string
+    provider: {
+      stage: string
+      vpc: {},
+    },
+    functions: {
+      name: {
+        vpc: {
+          subnetIds: {} | undefined,
+          securityGroupIds: {} | undefined,
         },
-    };
-    providers: {
-        aws: {
-            getCredentials(),
-            getRegion(),
-        },
-    };
-    cli: {
-        log(str: string, entity?: string),
-        consoleLog(str: any),
-    };
+        vpcDiscovery: FuncVPCDiscovery | boolean | undefined
+      }
+    },
+    custom: {
+      vpc: VPCDiscovery | undefined, // Deprecated
+      vpcDiscovery: VPCDiscovery | undefined
+    },
+  };
+  providers: {
+    aws: {
+      getCredentials (),
+      getRegion (),
+    },
+  };
+  cli: {
+    log (str: string, entity?: string),
+    consoleLog (str: any),
+  };
 }

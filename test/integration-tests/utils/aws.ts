@@ -1,20 +1,20 @@
-import { throttledCall } from "../../../src/utils"
+import { throttledCall } from "../../../src/utils";
 import aws = require("aws-sdk")
 
-const AWS_PROFILE = process.env.AWS_PROFILE
+const AWS_PROFILE = process.env.AWS_PROFILE;
 const credentials = new aws.SharedIniFileCredentials(
   { profile: AWS_PROFILE }
-)
-const REGION = "us-west-2"
+);
+const REGION = "us-west-2";
 const Lambda = new aws.Lambda({
   credentials: credentials,
   region: REGION
-})
+});
 
 const EC2 = new aws.EC2({
   credentials: credentials,
   region: REGION
-})
+});
 
 /**
  * Gets lambda function info
@@ -24,12 +24,12 @@ const EC2 = new aws.EC2({
  */
 async function getLambdaFunctionInfo (funcName: string, qualifier?: string) {
   if (qualifier === undefined) {
-    qualifier = "$LATEST"
+    qualifier = "$LATEST";
   }
   return await Lambda.getFunction({
     FunctionName: funcName,
     Qualifier: qualifier
-  }).promise()
+  }).promise();
 }
 
 /**
@@ -38,11 +38,11 @@ async function getLambdaFunctionInfo (funcName: string, qualifier?: string) {
  * @returns {data} - all information about the VPC
  */
 async function getVPCInfo (vpcId: string) {
-  const response = await throttledCall(EC2, "describeVpcs", { VpcIds: [vpcId] })
-  const vpc = response.Vpcs[0]
-  const nameTag = vpc.Tags.filter(item => item.Key === "Name")[0]
-  vpc.VpcName = nameTag.Value
-  return vpc
+  const response = await throttledCall(EC2, "describeVpcs", { VpcIds: [vpcId] });
+  const vpc = response.Vpcs[0];
+  const nameTag = vpc.Tags.filter((item) => item.Key === "Name")[0];
+  vpc.VpcName = nameTag.Value;
+  return vpc;
 }
 
 /**
@@ -57,13 +57,13 @@ async function getSubnetsInfo (vpcId: string, subnetIds: string[]) {
     Filters: [
       { Name: "vpc-id", Values: [vpcId] }
     ]
-  })
+  });
 
-  return response.Subnets.map(item => {
-    const nameTag = item.Tags.filter(item => item.Key === "Name")[0]
-    item.SubnetName = nameTag.Value
-    return item
-  })
+  return response.Subnets.map((item) => {
+    const nameTag = item.Tags.filter((item) => item.Key === "Name")[0];
+    item.SubnetName = nameTag.Value;
+    return item;
+  });
 }
 
 /**
@@ -78,8 +78,8 @@ async function getSecurityGroupInfo (vpcId: string, securityGroupIds: string[]) 
     Filters: [
       { Name: "vpc-id", Values: [vpcId] }
     ]
-  })
-  return response.SecurityGroups
+  });
+  return response.SecurityGroups;
 }
 
 export {
@@ -87,4 +87,4 @@ export {
   getVPCInfo,
   getSubnetsInfo,
   getSecurityGroupInfo
-}
+};

@@ -23,6 +23,19 @@
     "quotes": [
       "error",
       "double"
-    ]
+    ],
+    "semi": [
+      "error",
+      "always"
+    ],
+    "arrow-parens": [
+      "error",
+      "always"
+    ],
+    "complexity": [
+      "error",
+      15
+    ],
+    "guard-for-in": "error"
   }
 }

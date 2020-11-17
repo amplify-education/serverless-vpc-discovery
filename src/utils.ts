@@ -1,6 +1,6 @@
-import { Service } from "aws-sdk"
+import { Service } from "aws-sdk";
 
-const RETRYABLE_ERRORS = ["Throttling", "RequestLimitExceeded", "TooManyRequestsException"]
+const RETRYABLE_ERRORS = ["Throttling", "RequestLimitExceeded", "TooManyRequestsException"];
 
 /**
  * Iterate through the pages of a AWS SDK response and collect them into a single array
@@ -20,49 +20,49 @@ async function getAWSPagedResults (
   nextRequestTokenKey: string,
   params: object
 ): Promise<any[]> {
-  let results = []
-  let response = await throttledCall(service, funcName, params)
-  results = results.concat(response[resultsKey])
+  let results = [];
+  let response = await throttledCall(service, funcName, params);
+  results = results.concat(response[resultsKey]);
   // eslint-disable-next-line no-prototype-builtins
   while (response.hasOwnProperty(nextRequestTokenKey) && response[nextRequestTokenKey]) {
-    params[nextTokenKey] = response[nextRequestTokenKey]
-    response = await service[funcName](params).promise()
-    results = results.concat(response[resultsKey])
+    params[nextTokenKey] = response[nextRequestTokenKey];
+    response = await service[funcName](params).promise();
+    results = results.concat(response[resultsKey]);
   }
-  return results
+  return results;
 }
 
 async function throttledCall (service: Service, funcName: string, params: object): Promise<any> {
-  const maxTimePassed = 5 * 60
+  const maxTimePassed = 5 * 60;
 
-  let timePassed = 0
-  let previousInterval = 0
+  let timePassed = 0;
+  let previousInterval = 0;
 
-  const minWait = 3
-  const maxWait = 60
+  const minWait = 3;
+  const maxWait = 60;
 
   while (true) {
     try {
-      return await service[funcName](params).promise()
+      return await service[funcName](params).promise();
     } catch (ex) {
       // rethrow the exception if it is not a type of retryable exception
       if (RETRYABLE_ERRORS.indexOf(ex.code) === -1) {
-        throw ex
+        throw ex;
       }
 
       // rethrow the exception if we have waited too long
       if (timePassed >= maxTimePassed) {
-        throw ex
+        throw ex;
       }
 
       // Sleep using the Decorrelated Jitter algorithm recommended by AWS
       // https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
-      let newInterval = Math.random() * Math.min(maxWait, previousInterval * 3)
-      newInterval = Math.max(minWait, newInterval)
+      let newInterval = Math.random() * Math.min(maxWait, previousInterval * 3);
+      newInterval = Math.max(minWait, newInterval);
 
-      await sleep(newInterval)
-      previousInterval = newInterval
-      timePassed += previousInterval
+      await sleep(newInterval);
+      previousInterval = newInterval;
+      timePassed += previousInterval;
     }
   }
 }
@@ -73,11 +73,11 @@ async function throttledCall (service: Service, funcName: string, params: object
  * @returns {Promise<void>} Resolves after given number of seconds.
  */
 async function sleep (seconds) {
-  return new Promise((resolve) => setTimeout(resolve, 1000 * seconds))
+  return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
 export {
   sleep,
   getAWSPagedResults,
   throttledCall
-}
+};

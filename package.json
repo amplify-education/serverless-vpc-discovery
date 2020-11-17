@@ -1,6 +1,6 @@
 {
   "name": "serverless-vpc-discovery",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "engines": {
     "node": ">=4.0"
   },
@@ -9,8 +9,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/amplify-education/serverless-vpc-discovery"
+    "url": "git+https://github.com/amplify-education/serverless-vpc-discovery.git"
   },
+  "bugs": {
+    "url": "https://github.com/amplify-education/serverless-vpc-discovery/issues"
+  },
+  "homepage": "https://github.com/amplify-education/serverless-vpc-discovery#readme",
   "keywords": [
     "serverless discovery VPC",
     "serverless plugins",
@@ -49,7 +53,7 @@
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
     "aws-sdk-mock": "^5.1.0",
-    "chai": "^4.1.0",
+    "chai": "^4.2.0",
     "chai-spies": "^1.0.0",
     "eslint": "^7.13.0",
     "eslint-config-airbnb": "^18.2.1",

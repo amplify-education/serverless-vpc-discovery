@@ -11,17 +11,24 @@ provider:
 functions:
   helloWorld:
     handler: handler.helloWorld
-    events:
-      - http:
-          path: hello-world
-          method: get
-          cors: true
+    # inherit basic config
+  helloWorld1:
+    handler: handler.helloWorld
+    # skip vpc configuration
+    vpcDiscovery: false
+  helloWorld2:
+    handler: handler.helloWorld
+    # inherit basic subnet ids and use func security group ids
+    vpcDiscovery:
+      vpcName: ${env:TEST_VPC_NAME}
+      securityGroupNames:
+        - ${env:TEST_VPC_NAME}_maintenance
 
 plugins:
   - serverless-vpc-discovery
 
 custom:
-  vpc:
+  vpcDiscovery:
     vpcName: ${env:TEST_VPC_NAME}
     subnetNames:
       - ${env:TEST_VPC_NAME}_intranet_us-west-2a
