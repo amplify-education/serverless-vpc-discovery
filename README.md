@@ -8,7 +8,7 @@
 
 The vpc discovery plugin takes the given vpc, subnet, and security group names in the serverless file to setup the vpc configuration for the lambda.
 
-Basically we describe 
+Basically we use this config:
 ```
 vpcDiscovery:
     vpcName: '${opt:env}'
@@ -17,7 +17,7 @@ vpcDiscovery:
     securityGroupNames: # optional if subnetNames are specified
       - '${opt:env}_NAME OF SECURITY GROUP'
 ```
-And replace it with:
+To generate this config:
 ```
 vpc:
     subnetIds:
