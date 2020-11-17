@@ -100,12 +100,12 @@ class VPCPlugin {
           );
         }
 
-        // set vpc.subnetIds
+        // set vpc.subnetIds if it does not exists
         if (!func.vpc.subnetIds && funcVPC.subnetIds) {
           func.vpc.subnetIds = funcVPC.subnetIds;
         }
 
-        // set vpc.securityGroupIds
+        // set vpc.securityGroupIds if it does not exists
         if (!func.vpc.securityGroupIds && funcVPC.securityGroupIds) {
           func.vpc.securityGroupIds = funcVPC.securityGroupIds;
         }
