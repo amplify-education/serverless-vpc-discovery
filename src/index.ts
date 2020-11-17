@@ -75,6 +75,7 @@ class VPCPlugin {
       // loop through the functions and update VPC config
       // eslint-disable-next-line guard-for-in
       for (const funcName in service.functions) {
+        // eslint-disable-next-line
         const func = service.functions[funcName];
         const funcVPC = await this.lambdaFunction.getFuncVPC(funcName, func.vpcDiscovery);
 
