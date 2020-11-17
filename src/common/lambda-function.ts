@@ -29,7 +29,7 @@ export class LambdaFunction {
     }
 
     Globals.logWarning(
-      `The function '${funcName}' is not configured correctly.` +
+      `The function '${funcName}' is not configured correctly. ` +
       "Please see README for proper setup. The basic vpc config are applied"
     );
 
@@ -41,12 +41,11 @@ export class LambdaFunction {
    * @returns {boolean}
    */
   public validateVPCDiscovery (funcVPCDiscovery: FuncVPCDiscovery): boolean {
-    // check vpcDiscovery config
     if (funcVPCDiscovery) {
+      // check is vpcDiscovery correct
       const isSubnetsAndGroups = funcVPCDiscovery.subnetNames != null || funcVPCDiscovery.securityGroupNames != null;
-      // validate vpcDiscovery config options
       return funcVPCDiscovery.vpcName != null && isSubnetsAndGroups;
     }
-    return false;
+    return true;
   }
 }

@@ -32,6 +32,10 @@
       "error",
       "always"
     ],
-    "complexity": ["error", 15]
+    "complexity": [
+      "error",
+      15
+    ],
+    "guard-for-in": "error"
   }
 }

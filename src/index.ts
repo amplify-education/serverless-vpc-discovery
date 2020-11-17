@@ -73,6 +73,7 @@ class VPCPlugin {
     // Sets the serverless's vpc config
     if (service.functions) {
       // loop through the functions and update VPC config
+      // eslint-disable-next-line guard-for-in
       for (const funcName in service.functions) {
         const func = service.functions[funcName];
         const funcVPC = await this.lambdaFunction.getFuncVPC(funcName, func.vpcDiscovery);
