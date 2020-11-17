@@ -1,13 +1,14 @@
 "use strict";
 
-import { ServerlessInstance, VPC, VPCDiscovery } from "./types";
+import { ServerlessInstance } from "./types";
+import { LambdaFunction } from "./common/lambda-function";
 import Globals from "./globals";
-import EC2Wrapper = require("./aws/ec2-wrapper")
 
 class VPCPlugin {
   private serverless: ServerlessInstance;
   public hooks: object;
-  public ec2Wrapper: EC2Wrapper;
+  public awsCredentials: any;
+  public lambdaFunction: LambdaFunction;
 
   constructor (serverless) {
     this.serverless = serverless;
@@ -25,7 +26,7 @@ class VPCPlugin {
    */
   public async hookWrapper (lifecycleFunc: any) {
     this.validateConfigExists();
-    this.initAWSResources();
+    this.initResources();
     return await lifecycleFunc.call(this);
   }
 
@@ -34,7 +35,7 @@ class VPCPlugin {
    */
   public validateConfigExists (): void {
     const config = this.serverless.service.custom;
-    if (!config.vpcDiscovery) {
+    if (config && !config.vpcDiscovery) {
       config.vpcDiscovery = config.vpc;
       Globals.logWarning(
         "The `vpc` option of `custom` config is deprecated and will be removed in the future. " +
@@ -55,10 +56,10 @@ class VPCPlugin {
   /**
    * Setup AWS resources
    */
-  public initAWSResources (): void {
-    const credentials = this.serverless.providers.aws.getCredentials();
-    credentials.region = this.serverless.providers.aws.getRegion();
-    this.ec2Wrapper = new EC2Wrapper(credentials);
+  public initResources (): void {
+    this.awsCredentials = this.serverless.providers.aws.getCredentials();
+    this.awsCredentials.region = this.serverless.providers.aws.getRegion();
+    this.lambdaFunction = new LambdaFunction(this.awsCredentials, this.serverless.service.custom.vpcDiscovery);
   }
 
   /**
@@ -71,84 +72,45 @@ class VPCPlugin {
 
     // Sets the serverless's vpc config
     if (service.functions) {
-      // get basic VPC config
-      const basicVPCDiscovery = await this.getVpcConfig(service.custom.vpcDiscovery);
       // loop through the functions and update VPC config
-      for (const fName of Object.keys(service.functions)) {
-        const f = service.functions[fName];
-        const fVPCDiscovery = f.vpcDiscovery;
+      for (const funcName in service.functions) {
+        const func = service.functions[funcName];
+        const funcVPC = await this.lambdaFunction.getFuncVPC(funcName, func.vpcDiscovery);
 
-        if (typeof fVPCDiscovery === "boolean" && !fVPCDiscovery) {
-          // skip vpc setup for `vpcDiscovery=false` option
-          Globals.logInfo(`Skipping VPC config for the function '${fName}'`);
+        if (!funcVPC) {
           continue;
         }
 
-        const vpcDiscovery = basicVPCDiscovery;
-        // check vpcDiscovery config
-        if (fVPCDiscovery) {
-          const noSubnetsAndGroups = fVPCDiscovery.subnetNames == null && fVPCDiscovery.securityGroupNames == null;
-          // validate vpcDiscovery config options
-          if (fVPCDiscovery.vpcName == null || noSubnetsAndGroups) {
-            Globals.logWarning(
-              `The function '${fName}' is not configured correctly.` +
-              "Please see README for proper setup. The basic vpc config are applied"
-            );
-          } else {
-            // merge basic config to specific for the function
-            Object.assign(vpcDiscovery, await this.getVpcConfig(fVPCDiscovery));
-          }
-        }
-
         // init vpc empty config in case not exists
-        f.vpc = f.vpc || {};
-
+        func.vpc = func.vpc || {};
         // log warning in case vpc.subnetIds and vpcDiscovery.subnetNames are specified.
-        if (f.vpc.subnetIds && fVPCDiscovery.subnetNames) {
+        if (func.vpc.subnetIds && func.vpcDiscovery && func.vpcDiscovery.subnetNames) {
           Globals.logWarning(
-            `vpc.subnetIds' are specified for the function '${fName}' 
+            `vpc.subnetIds' are specified for the function '${funcName}' 
             and overrides 'vpcDiscovery.subnetNames' discovery config.`
           );
         }
-
-        // set vpc.subnetIds
-        if (!f.vpc.subnetIds && vpcDiscovery.subnetIds) {
-          f.vpc.subnetIds = vpcDiscovery.subnetIds;
-        }
-
         // log warning in case vpc.securityGroupIds and vpcDiscovery.securityGroupNames are specified.
-        if (f.vpc.securityGroupIds && fVPCDiscovery.securityGroupNames) {
+        if (func.vpc.securityGroupIds && func.vpcDiscovery && func.vpcDiscovery.securityGroupNames) {
           Globals.logWarning(
-            `vpc.securityGroupIds' are specified for the function '${fName}' 
+            `vpc.securityGroupIds' are specified for the function '${funcName}' 
             and overrides 'vpcDiscovery.securityGroupNames' discovery config.`
           );
         }
 
+        // set vpc.subnetIds
+        if (!func.vpc.subnetIds && funcVPC.subnetIds) {
+          func.vpc.subnetIds = funcVPC.subnetIds;
+        }
+
         // set vpc.securityGroupIds
-        if (!f.vpc.securityGroupIds && vpcDiscovery.securityGroupIds) {
-          f.vpc.securityGroupIds = vpcDiscovery.securityGroupIds;
+        if (!func.vpc.securityGroupIds && funcVPC.securityGroupIds) {
+          func.vpc.securityGroupIds = funcVPC.securityGroupIds;
         }
       }
     }
 
     return service.functions;
-  }
-
-  /**
-   * Gets the desired vpc with the designated subnets and security groups
-   * that were set in serverless config file
-   * @returns {Promise<object>}
-   */
-  public async getVpcConfig (vpcDiscovery: VPCDiscovery): Promise<VPC> {
-    const vpc: VPC = {};
-    const vpcId = await this.ec2Wrapper.getVpcId(vpcDiscovery.vpcName);
-    if (vpcDiscovery.subnetNames) {
-      vpc.subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, vpcDiscovery.subnetNames);
-    }
-    if (vpcDiscovery.securityGroupNames) {
-      vpc.securityGroupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, vpcDiscovery.securityGroupNames);
-    }
-    return vpc;
   }
 }
 

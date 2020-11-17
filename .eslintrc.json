@@ -32,6 +32,6 @@
       "error",
       "always"
     ],
-    "complexity": ["error", 20]
+    "complexity": ["error", 15]
   }
 }

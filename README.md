@@ -8,6 +8,28 @@
 
 The vpc discovery plugin takes the given vpc, subnet, and security group names in the serverless file to setup the vpc configuration for the lambda.
 
+Basically we describe 
+```
+vpcDiscovery:
+    vpcName: '${opt:env}'
+    subnetNames: # optional if securityGroupNames are specified
+      - '${opt:env}_NAME OF SUBNET'
+    securityGroupNames: # optional if subnetNames are specified
+      - '${opt:env}_NAME OF SECURITY GROUP'
+```
+And replace it with:
+```
+vpc:
+    subnetIds:
+        - subnet-123456789
+        ...
+    securityGroupIds:
+        - sg-123456789
+        ...
+```
+For each lambda function
+      
+
 # About Amplify
 Amplify builds innovative and compelling digital educational products that empower teachers and students across the country. We have a long history as the leading innovator in K-12 education - and have been described as the best tech company in education and the best education company in tech. While others try to shrink the learning experience into the technology, we use technology to expand what is possible in real classrooms with real students and teachers.
 
@@ -51,21 +73,21 @@ custom:
 
 # (Optional) set a config for the specific function
 functions:
-  example:
+  example1:
     handler: handler.example
     # inherit basic config
-  example1:
+  example2:
     handler: handler.example
     # skip vpc configuration
     vpcDiscovery: false
-  example2:
+  example3:
     handler: handler.example
     # inherit basic subnet ids and use func security group ids
     vpcDiscovery:
       vpcName: '${opt:env}'
       securityGroupNames:
         - '${opt:env}_NAME OF SECURITY GROUP'
-  example3:
+  example4:
     handler: handler.example
     # inherit basic subnet ids and use func security group ids
     vpcDiscovery:

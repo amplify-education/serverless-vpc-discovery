@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 module.exports.helloWorld = (event, context, callback) => {
   const response = {
@@ -10,7 +10,7 @@ module.exports.helloWorld = (event, context, callback) => {
       message: "Go Serverless VPC Discovery! Your function executed successfully!",
       input: event
     })
-  }
+  };
 
-  callback(null, response)
-}
+  callback(null, response);
+};

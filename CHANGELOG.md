@@ -6,12 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [2.1.0] - 2020-11-17
 ### Changed
-- ***Important!*** The `vpc` option has been changed to the `vpcDiscovery`.
+- ***Important!*** The `vpc` option has been deprecated but it still will work for a while. The new option is `vpcDiscovery`.
 - The VPC config applies to each function instead of the provider option.
-- Fixed racing an error for missing subnets or security groups.
+- Fixed logic for checking missing subnets and security groups.
 ### Added
 - A possibility to specify custom config for each function by specifying `function.vpcDiscovery` config
-- Added `waring` and `info` messages
+- Added `warning` and `info` messages
 
 ## [2.0.0] - 2020-11-13
 ### Changed
