@@ -82,14 +82,14 @@ functions:
     vpcDiscovery: false
   example3:
     handler: handler.example
-    # inherit basic subnet ids and use func security group ids
+    # inherit basic subnet names and override basic security group names
     vpcDiscovery:
       vpcName: '${opt:env}'
       securityGroupNames:
         - '${opt:env}_NAME OF SECURITY GROUP'
   example4:
     handler: handler.example
-    # inherit basic subnet ids and use func security group ids
+    # override basic subnet names and security group names
     vpcDiscovery:
       vpcName: '${opt:env}'
       subnetNames: # optional if securityGroupNames are specified
@@ -98,6 +98,8 @@ functions:
         - '${opt:env}_NAME OF SECURITY GROUP'        
 ```
 > NOTE: The naming pattern we used here was building off the vpc name for the subnet and security group by extending it with the the subnet and security group name. This makes it easier to switch to different vpcs by changing the environment variable in the command line
+ 
+> NOTE: The core sls `provider.vpc` config will change the plugin behavior.
 
 ## Running Tests
 To run the test:
