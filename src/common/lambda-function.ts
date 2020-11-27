@@ -1,10 +1,11 @@
 import { EC2Wrapper } from "../aws/ec2-wrapper";
 import { VPCDiscovery, FuncVPCDiscovery, VPC } from "../types";
 import Globals from "../globals";
+import { isObjectEmpty } from "../utils";
 
 export class LambdaFunction {
   private ec2Wrapper: EC2Wrapper;
-  private readonly basicVPCDiscovery: VPCDiscovery;
+  private readonly basicVPCDiscovery?: VPCDiscovery;
 
   constructor (credentials: any, basicVPCDiscovery: VPCDiscovery) {
     this.ec2Wrapper = new EC2Wrapper(credentials);
@@ -18,20 +19,25 @@ export class LambdaFunction {
   public async getFuncVPC (funcName: string, funcVPCDiscovery: FuncVPCDiscovery): Promise<VPC> {
     if (typeof funcVPCDiscovery === "boolean" && !funcVPCDiscovery) {
       // skip vpc setup for `vpcDiscovery=false` option
-      Globals.logInfo(`Skipping VPC config for the function '${funcName}'`);
+      Globals.logInfo(`Skip the VPC config for the function '${funcName}'`);
       return null;
     }
-    const isConfigValid = this.validateVPCDiscovery(funcVPCDiscovery);
-    if (isConfigValid) {
-      // inherit basic config
-      const vpcDiscovery = Object.assign({}, this.basicVPCDiscovery, funcVPCDiscovery);
-      return await this.ec2Wrapper.getVpcConfig(vpcDiscovery);
+    // inherit basic config
+    const vpcDiscovery = Object.assign({}, this.basicVPCDiscovery, funcVPCDiscovery);
+    // return null in case vpcDiscovery not setup
+    if (isObjectEmpty(vpcDiscovery)) {
+      return null;
     }
-
-    Globals.logWarning(
-      `The function '${funcName}' is not configured correctly. ` +
-      "Please see README for proper setup. The basic vpc config are applied"
-    );
+    // validate vpcDiscovery config
+    const isConfigValid = this.validateVPCDiscovery(vpcDiscovery);
+    if (!isConfigValid) {
+      // skip vpc setup for not valid config
+      Globals.logWarning(
+        `The function '${funcName}' is not configured correctly. Skip the VPC config.` +
+        "Please see the README for the proper setup."
+      );
+      return null;
+    }
 
     return await this.ec2Wrapper.getVpcConfig(this.basicVPCDiscovery);
   }
@@ -43,8 +49,8 @@ export class LambdaFunction {
   public validateVPCDiscovery (funcVPCDiscovery: FuncVPCDiscovery): boolean {
     if (funcVPCDiscovery) {
       // check is vpcDiscovery correct
-      const isSubnetsAndGroups = funcVPCDiscovery.subnetNames != null || funcVPCDiscovery.securityGroupNames != null;
-      return funcVPCDiscovery.vpcName != null && isSubnetsAndGroups;
+      const isSubnetsOrGroups = funcVPCDiscovery.subnetNames != null || funcVPCDiscovery.securityGroupNames != null;
+      return funcVPCDiscovery.vpcName != null && isSubnetsOrGroups;
     }
     return true;
   }

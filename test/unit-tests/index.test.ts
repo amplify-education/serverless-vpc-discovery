@@ -82,7 +82,7 @@ describe("Given a vpc,", () => {
       subnetNames: subnets,
       securityGroupNames: securityGroups
     });
-    plugin.validateConfigExists();
+    plugin.validateCustomVPCDiscovery();
     plugin.initResources();
 
     const expectedResult = {
@@ -192,7 +192,7 @@ describe("Catching errors in updateVpcConfig ", () => {
       subnetNames: subnets,
       securityGroupNames: securityGroups
     });
-    plugin.validateConfigExists();
+    plugin.validateCustomVPCDiscovery();
     plugin.initResources();
     return plugin.updateFunctionsVpcConfig().then(() => {
       throw new Error("Test has failed. updateVpcConfig did not catch errors.");
@@ -209,9 +209,9 @@ describe("Catching errors in updateVpcConfig ", () => {
     });
 
     try {
-      plugin.validateConfigExists();
+      plugin.validateCustomVPCDiscovery();
     } catch (err) {
-      const expectedErrorMessage = "Serverless file is not configured correctly. " +
+      const expectedErrorMessage = "The `custom.vpcDiscovery` is not configured correctly. " +
         "You must specify the vpcName and at least one of subnetNames or securityGroupNames. " +
         "Please see README for proper setup.";
       expect(err.message).to.equal(expectedErrorMessage);

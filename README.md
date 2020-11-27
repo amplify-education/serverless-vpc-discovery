@@ -13,9 +13,9 @@ Basically we use this config:
 vpcDiscovery:
     vpcName: '${opt:env}'
     subnetNames: # optional if securityGroupNames are specified
-      - '${opt:env}_NAME OF SUBNET'
+      - '${opt:env}_<name of subnet>'
     securityGroupNames: # optional if subnetNames are specified
-      - '${opt:env}_NAME OF SECURITY GROUP'
+      - '${opt:env}_<name of security group>'
 ```
 To generate this config:
 ```
@@ -27,8 +27,9 @@ vpc:
         - sg-123456789
         ...
 ```
-For each lambda function
+For each lambda function.
       
+> Note: The plugin can be used with the core serverless vpc config. Take a look at [official documentation](https://www.serverless.com/framework/docs/providers/aws/guide/functions#vpc-configuration). 
 
 # About Amplify
 Amplify builds innovative and compelling digital educational products that empower teachers and students across the country. We have a long history as the leading innovator in K-12 education - and have been described as the best tech company in education and the best education company in tech. While others try to shrink the learning experience into the technology, we use technology to expand what is possible in real classrooms with real students and teachers.
@@ -62,20 +63,20 @@ Then make the following edits to your serverless.yaml file:
 plugins:
   - serverless-vpc-discovery
 
-# required config
+# (Optional) in case functions vpcDiscovery specified
 custom:
   vpcDiscovery:
     vpcName: '${opt:env}'
     subnetNames: # optional if securityGroupNames are specified
-      - '${opt:env}_NAME OF SUBNET'
+      - '${opt:env}_<name of subnet>'
     securityGroupNames: # optional if subnetNames are specified
-      - '${opt:env}_NAME OF SECURITY GROUP'
+      - '${opt:env}_<name of security group>'
 
 # (Optional) set a config for the specific function
 functions:
   example1:
     handler: handler.example
-    # inherit basic config
+    # inherit `custom.vpcDiscovery` config if specified or none
   example2:
     handler: handler.example
     # skip vpc configuration
@@ -86,20 +87,20 @@ functions:
     vpcDiscovery:
       vpcName: '${opt:env}'
       securityGroupNames:
-        - '${opt:env}_NAME OF SECURITY GROUP'
+        - '${opt:env}_<name of security group>'
   example4:
     handler: handler.example
     # override basic subnet names and security group names
     vpcDiscovery:
       vpcName: '${opt:env}'
       subnetNames: # optional if securityGroupNames are specified
-        - '${opt:env}_NAME OF SUBNET'
+        - '${opt:env}_<name of subnet>'
       securityGroupNames:  # optional if subnetNames are specified
-        - '${opt:env}_NAME OF SECURITY GROUP'        
+        - '${opt:env}_<name of security group>'        
 ```
-> NOTE: The naming pattern we used here was building off the vpc name for the subnet and security group by extending it with the the subnet and security group name. This makes it easier to switch to different vpcs by changing the environment variable in the command line
- 
-> NOTE: The core sls `provider.vpc` config will change the plugin behavior.
+> NOTE: The core serverless `provider.vpc` will inherit or extended functions vpc config after the plugin apply.
+
+> NOTE: The naming pattern we used here was building off the vpc name for the subnet and security group by extending it with the the subnet and security group name. This makes it easier to switch to different vpcs by changing the environment variable in the command line.
 
 ## Running Tests
 To run the test:
