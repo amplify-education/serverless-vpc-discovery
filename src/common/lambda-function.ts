@@ -39,7 +39,7 @@ export class LambdaFunction {
       return null;
     }
 
-    return await this.ec2Wrapper.getVpcConfig(this.basicVPCDiscovery);
+    return await this.ec2Wrapper.getVpcConfig(vpcDiscovery);
   }
 
   /**

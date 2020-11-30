@@ -14,10 +14,15 @@ const TIMEOUT_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
 const RANDOM_STRING = getRandomString();
 const TEMP_DIR = `~/tmp/vpc-discovery-test-${RANDOM_STRING}`;
 
-const testCases = [{
-  testDescription: "Basic example",
-  testFolder: `${CONFIGS_FOLDER}/basic-example`
-}];
+const testCases = [
+  {
+    testDescription: "Basic example",
+    testFolder: `${CONFIGS_FOLDER}/basic-example`
+  }, {
+    testDescription: "No basic VPC config",
+    testFolder: `${CONFIGS_FOLDER}/only-functions`
+  }
+];
 
 describe("Integration Tests", function () {
   this.timeout(TIMEOUT_MINUTES);

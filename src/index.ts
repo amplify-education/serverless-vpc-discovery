@@ -59,7 +59,9 @@ class VPCPlugin {
   public initResources (): void {
     this.awsCredentials = this.serverless.providers.aws.getCredentials();
     this.awsCredentials.region = this.serverless.providers.aws.getRegion();
-    this.lambdaFunction = new LambdaFunction(this.awsCredentials, this.serverless.service.custom.vpcDiscovery);
+
+    const baseVPCDiscovery = this.serverless.service.custom ? this.serverless.service.custom.vpcDiscovery : null;
+    this.lambdaFunction = new LambdaFunction(this.awsCredentials, baseVPCDiscovery);
   }
 
   /**
