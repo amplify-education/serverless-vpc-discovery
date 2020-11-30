@@ -1,5 +1,5 @@
-# basic example
-service: test-sls-vpc-dicovery-${opt:RANDOM_STRING}
+# only functions setup example
+service: test-sls-only-functions-${opt:RANDOM_STRING}
 
 provider:
   name: aws
