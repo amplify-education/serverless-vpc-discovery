@@ -76,7 +76,7 @@ custom:
 functions:
   example1:
     handler: handler.example
-    # inherit `custom.vpcDiscovery` config if specified or none
+    # inherit `custom.vpcDiscovery` config if specified
   example2:
     handler: handler.example
     # skip vpc configuration
