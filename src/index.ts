@@ -25,7 +25,7 @@ class VPCPlugin {
    * @param lifecycleFunc lifecycle function that actually does desired action
    */
   public async hookWrapper (lifecycleFunc: any) {
-    this.validateCustomVPCDiscovery();
+    this.validateCustomVPCDiscoveryConfig();
     this.initResources();
     return await lifecycleFunc.call(this);
   }
@@ -33,7 +33,7 @@ class VPCPlugin {
   /**
    * Validate if the plugin config exists
    */
-  public validateCustomVPCDiscovery (): void {
+  public validateCustomVPCDiscoveryConfig (): void {
     const config = this.serverless.service.custom;
     if (config && !config.vpcDiscovery && config.vpc) {
       config.vpcDiscovery = config.vpc;

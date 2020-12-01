@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [2.2.0] - 2020-12-01
 ### Changed
-- Set `custom.vpcDiscovery` optional. Updated readme.
+- Set `custom.vpcDiscovery` optional.
 - Update travis config for github release tagging
 
 ## [2.1.0] - 2020-11-17

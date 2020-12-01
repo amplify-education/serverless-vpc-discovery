@@ -82,7 +82,7 @@ describe("Given a vpc,", () => {
       subnetNames: subnets,
       securityGroupNames: securityGroups
     });
-    plugin.validateCustomVPCDiscovery();
+    plugin.validateCustomVPCDiscoveryConfig();
     plugin.initResources();
 
     const expectedResult = {
@@ -192,7 +192,7 @@ describe("Catching errors in updateVpcConfig ", () => {
       subnetNames: subnets,
       securityGroupNames: securityGroups
     });
-    plugin.validateCustomVPCDiscovery();
+    plugin.validateCustomVPCDiscoveryConfig();
     plugin.initResources();
     return plugin.updateFunctionsVpcConfig().then(() => {
       throw new Error("Test has failed. updateVpcConfig did not catch errors.");
@@ -209,7 +209,7 @@ describe("Catching errors in updateVpcConfig ", () => {
     });
 
     try {
-      plugin.validateCustomVPCDiscovery();
+      plugin.validateCustomVPCDiscoveryConfig();
     } catch (err) {
       const expectedErrorMessage = "The `custom.vpcDiscovery` is not configured correctly. " +
         "You must specify the vpcName and at least one of subnetNames or securityGroupNames. " +

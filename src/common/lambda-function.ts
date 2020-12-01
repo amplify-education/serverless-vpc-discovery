@@ -19,10 +19,10 @@ export class LambdaFunction {
   public async getFuncVPC (funcName: string, funcVPCDiscovery: FuncVPCDiscovery): Promise<VPC> {
     if (typeof funcVPCDiscovery === "boolean" && !funcVPCDiscovery) {
       // skip vpc setup for `vpcDiscovery=false` option
-      Globals.logInfo(`Skip the VPC config for the function '${funcName}'`);
+      Globals.logInfo(`Skip the VPC config for function '${funcName}'`);
       return null;
     }
-    // inherit basic config
+    // inherit the `custom.vpcDiscovery`
     const vpcDiscovery = Object.assign({}, this.basicVPCDiscovery, funcVPCDiscovery);
     // return null in case vpcDiscovery not setup
     if (isObjectEmpty(vpcDiscovery)) {

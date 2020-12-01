@@ -29,7 +29,7 @@ vpc:
 ```
 For each lambda function.
       
-> Note: The plugin can be used with the core serverless vpc config. Take a look at [official documentation](https://www.serverless.com/framework/docs/providers/aws/guide/functions#vpc-configuration). 
+> Note: The core serverless `provider.vpc` settings will be used, if they are set, instead of `vpcDiscovery`. You can use also mix settings. For example you may set `provider.vpc.subnetIds` while using `vpcDiscovery` to set the `securityGroupIds`. Take a look at [official documentation](https://www.serverless.com/framework/docs/providers/aws/guide/functions#vpc-configuration). 
 
 # About Amplify
 Amplify builds innovative and compelling digital educational products that empower teachers and students across the country. We have a long history as the leading innovator in K-12 education - and have been described as the best tech company in education and the best education company in tech. While others try to shrink the learning experience into the technology, we use technology to expand what is possible in real classrooms with real students and teachers.
@@ -63,7 +63,7 @@ Then make the following edits to your serverless.yaml file:
 plugins:
   - serverless-vpc-discovery
 
-# (Optional) in case functions vpcDiscovery specified
+# Optional: Either set `custom.vpcDiscovery` or `functions.<function name>.vpcDiscovery`
 custom:
   vpcDiscovery:
     vpcName: '${opt:env}'
@@ -83,7 +83,7 @@ functions:
     vpcDiscovery: false
   example3:
     handler: handler.example
-    # inherit basic subnet names and override basic security group names
+    # inherit `custom.vpcDiscovery` and override security group names
     vpcDiscovery:
       vpcName: '${opt:env}'
       securityGroupNames:
@@ -98,8 +98,6 @@ functions:
       securityGroupNames:  # optional if subnetNames are specified
         - '${opt:env}_<name of security group>'        
 ```
-> NOTE: The core serverless `provider.vpc` will inherit or extended functions vpc config after the plugin apply.
-
 > NOTE: The naming pattern we used here was building off the vpc name for the subnet and security group by extending it with the the subnet and security group name. This makes it easier to switch to different vpcs by changing the environment variable in the command line.
 
 ## Running Tests
