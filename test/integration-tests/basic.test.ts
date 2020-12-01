@@ -54,8 +54,9 @@ describe("Integration Tests", function () {
           expect(lambdaVPCConfig).to.equal(undefined);
         } else {
           // check vpcDiscovery config
-          const emptyVPCDiscovery = { vpcName: undefined, subnetNames: [], securityGroupNames: [] };
           const vpcId = lambdaVPCConfig ? lambdaVPCConfig.VpcId : null;
+          // inherit basic config if exist else empty for further checks
+          const emptyVPCDiscovery = { vpcName: undefined, subnetNames: [], securityGroupNames: [] };
           const vpcDiscovery = Object.assign({}, emptyVPCDiscovery, basicVPCDiscovery, funcVPCDiscovery);
 
           // get vpc info by lambda vpc id and check names
