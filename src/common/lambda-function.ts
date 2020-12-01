@@ -29,7 +29,7 @@ export class LambdaFunction {
       return null;
     }
     // validate vpcDiscovery config
-    const isConfigValid = this.validateVPCDiscovery(vpcDiscovery);
+    const isConfigValid = this.validateFuncVPCDiscoveryConfig(vpcDiscovery);
     if (!isConfigValid) {
       // skip vpc setup for not valid config
       Globals.logWarning(
@@ -46,7 +46,7 @@ export class LambdaFunction {
    * Validate function vpc discovery config
    * @returns {boolean}
    */
-  public validateVPCDiscovery (funcVPCDiscovery: FuncVPCDiscovery): boolean {
+  public validateFuncVPCDiscoveryConfig (funcVPCDiscovery: FuncVPCDiscovery): boolean {
     if (funcVPCDiscovery) {
       // check is vpcDiscovery correct
       const isSubnetsOrGroups = funcVPCDiscovery.subnetNames != null || funcVPCDiscovery.securityGroupNames != null;
