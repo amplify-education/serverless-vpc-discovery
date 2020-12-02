@@ -76,8 +76,13 @@ async function sleep (seconds) {
   return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
+function isObjectEmpty (object: Object): boolean {
+  return Object.keys(object).length === 0;
+}
+
 export {
   sleep,
   getAWSPagedResults,
-  throttledCall
+  throttledCall,
+  isObjectEmpty
 };

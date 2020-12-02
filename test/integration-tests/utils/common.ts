@@ -37,8 +37,10 @@ function readLambdaFunctions (configPath: string, vpcName: string, identifier: s
  */
 function readBasicVPCConfig (configPath: string, vpcName: string) {
   const config = readYml(configPath);
-  const vpcDiscovery = config.custom.vpcDiscovery;
-  return compileVPCConfig(vpcDiscovery, vpcName);
+  if (!config.custom || !config.custom.vpcDiscovery) {
+    return null;
+  }
+  return compileVPCConfig(config.custom.vpcDiscovery, vpcName);
 }
 
 /**

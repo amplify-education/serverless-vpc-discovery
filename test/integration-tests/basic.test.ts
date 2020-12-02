@@ -14,57 +14,67 @@ const TIMEOUT_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
 const RANDOM_STRING = getRandomString();
 const TEMP_DIR = `~/tmp/vpc-discovery-test-${RANDOM_STRING}`;
 
-const testCases = [{
-  testDescription: "Basic example",
-  testFolder: `${CONFIGS_FOLDER}/basic-example`
-}];
+const testCases = [
+  {
+    testDescription: "Basic example",
+    testFolder: `${CONFIGS_FOLDER}/basic-example`
+  },
+  {
+    testDescription: "No basic VPC config",
+    testFolder: `${CONFIGS_FOLDER}/only-functions`
+  }
+];
 
 describe("Integration Tests", function () {
   this.timeout(TIMEOUT_MINUTES);
+
   // @ts-ignore
   // eslint-disable-next-line no-template-curly-in-string
-  itParam("${value.testDescription}", testCases, async (done, value) => {
+  itParam("${value.testDescription}", testCases, async (value) => {
     const slsConfig = path.join(__dirname, `${value.testFolder}/serverless.yml`);
 
     // read basic vpcDiscovery config
-    const slsBasicVPCConfig = readBasicVPCConfig(slsConfig, TEST_VPC_NAME);
+    const basicVPCDiscovery = readBasicVPCConfig(slsConfig, TEST_VPC_NAME);
     // read lambda func names and func vpc configs from the serverless.yml
     const funcConfigs = readLambdaFunctions(slsConfig, TEST_VPC_NAME, RANDOM_STRING);
+    // prepare folder with npm packages and deploy
+    await execution.createTempDir(TEMP_DIR, value.testFolder);
     try {
-      // prepare folder with npm packages and deploy
-      await execution.createTempDir(TEMP_DIR, value.testFolder);
       await execution.slsDeploy(TEMP_DIR, RANDOM_STRING);
 
+      // eslint-disable-next-line guard-for-in
       for (const funcName in funcConfigs) {
-        const vpcDiscovery = funcConfigs[funcName];
+        const funcVPCDiscovery = funcConfigs[funcName];
         // get lambda function info
         const data = await getLambdaFunctionInfo(funcName);
         const lambdaVPCConfig = data.Configuration.VpcConfig;
 
-        if (typeof vpcDiscovery === "boolean" && !vpcDiscovery) {
+        if (typeof funcVPCDiscovery === "boolean" && !funcVPCDiscovery) {
           // for option `func.vpcDiscovery: false` it shouldn't be vpc config
           expect(lambdaVPCConfig).to.equal(undefined);
         } else {
           // check vpcDiscovery config
-          const vpcConfig = Object.assign({}, slsBasicVPCConfig, vpcDiscovery);
+          const vpcId = lambdaVPCConfig ? lambdaVPCConfig.VpcId : null;
+          // inherit basic config if exist else empty for further checks
+          const emptyVPCDiscovery = { vpcName: undefined, subnetNames: [], securityGroupNames: [] };
+          const vpcDiscovery = Object.assign({}, emptyVPCDiscovery, basicVPCDiscovery, funcVPCDiscovery);
 
           // get vpc info by lambda vpc id and check names
-          const vpc = await getVPCInfo(lambdaVPCConfig.VpcId);
-          expect(vpcConfig.vpcName).to.equal(vpc.VpcName);
+          const vpc = vpcId ? await getVPCInfo(vpcId) : {};
+          expect(vpcDiscovery.vpcName).to.equal(vpc.VpcName);
 
           // get vpc subnets info by lambda vpc id and subnets ids, check names
-          const subnets = await getSubnetsInfo(lambdaVPCConfig.VpcId, lambdaVPCConfig.SubnetIds);
+          const subnets = vpcId ? await getSubnetsInfo(vpcId, lambdaVPCConfig.SubnetIds) : [];
           const subnetNames = subnets.map((item) => item.SubnetName).sort();
-          expect(JSON.stringify(vpcConfig.subnetNames.sort())).to.equal(JSON.stringify(subnetNames));
+          expect(JSON.stringify(vpcDiscovery.subnetNames.sort())).to.equal(JSON.stringify(subnetNames));
 
           // get vpc security groups info by lambda vpc id and security groups ids, check names
-          const securityGroups = await getSecurityGroupInfo(lambdaVPCConfig.VpcId, lambdaVPCConfig.SecurityGroupIds);
+          const securityGroups = vpcId ? await getSecurityGroupInfo(vpcId, lambdaVPCConfig.SecurityGroupIds) : [];
           const securityGroupNames = securityGroups.map((item) => item.GroupName).sort();
-          expect(JSON.stringify(vpcConfig.securityGroupNames.sort())).to.equal(JSON.stringify(securityGroupNames));
+          expect(JSON.stringify(vpcDiscovery.securityGroupNames.sort())).to.equal(JSON.stringify(securityGroupNames));
         }
       }
     } finally {
-      done();
       await execution.slsRemove(TEMP_DIR, RANDOM_STRING);
     }
   });

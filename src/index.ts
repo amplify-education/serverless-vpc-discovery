@@ -25,7 +25,7 @@ class VPCPlugin {
    * @param lifecycleFunc lifecycle function that actually does desired action
    */
   public async hookWrapper (lifecycleFunc: any) {
-    this.validateConfigExists();
+    this.validateCustomVPCDiscoveryConfig();
     this.initResources();
     return await lifecycleFunc.call(this);
   }
@@ -33,20 +33,20 @@ class VPCPlugin {
   /**
    * Validate if the plugin config exists
    */
-  public validateConfigExists (): void {
+  public validateCustomVPCDiscoveryConfig (): void {
     const config = this.serverless.service.custom;
-    if (config && !config.vpcDiscovery) {
+    if (config && !config.vpcDiscovery && config.vpc) {
       config.vpcDiscovery = config.vpc;
       Globals.logWarning(
         "The `vpc` option of `custom` config is deprecated and will be removed in the future. " +
-        "Please use `vpcDiscovery` option instead."
+        "Please use the `vpcDiscovery` option instead."
       );
     }
     const vpc = config && config.vpcDiscovery;
-    // Checks if the serverless file is setup correctly
-    if (!vpc || vpc.vpcName == null || (vpc.subnetNames == null && vpc.securityGroupNames == null)) {
+    // Checking the vpcDiscovery config is setup correctly if exists
+    if (vpc && (vpc.vpcName == null || (vpc.subnetNames == null && vpc.securityGroupNames == null))) {
       throw new Error(
-        "Serverless file is not configured correctly. " +
+        "The `custom.vpcDiscovery` is not configured correctly. " +
         "You must specify the vpcName and at least one of subnetNames or securityGroupNames. " +
         "Please see README for proper setup."
       );
@@ -59,7 +59,9 @@ class VPCPlugin {
   public initResources (): void {
     this.awsCredentials = this.serverless.providers.aws.getCredentials();
     this.awsCredentials.region = this.serverless.providers.aws.getRegion();
-    this.lambdaFunction = new LambdaFunction(this.awsCredentials, this.serverless.service.custom.vpcDiscovery);
+
+    const baseVPCDiscovery = this.serverless.service.custom ? this.serverless.service.custom.vpcDiscovery : null;
+    this.lambdaFunction = new LambdaFunction(this.awsCredentials, baseVPCDiscovery);
   }
 
   /**

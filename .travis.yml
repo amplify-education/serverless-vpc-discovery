@@ -16,8 +16,9 @@ script:
 before_deploy:
   - npm run build
 deploy:
-  skip_cleanup: true
   provider: npm
+  edge: true
+  cleanup: true
   email: $NPM_EMAIL
   api_key: $NPM_KEY
   on:
