@@ -1,15 +1,29 @@
-export interface VPC {
-  subnetIds?: string[];
-  securityGroupIds?: string[];
+export interface SubnetItem {
+  tagKey: string;
+  tagValues: string[];
+}
+
+export interface SecurityGroupItem {
+  tagKey?: string;
+  tagValues?: string[];
+  names?: string[];
 }
 
 export interface VPCDiscovery {
   vpcName: string;
+  subnets?: SubnetItem;
+  securityGroups?: SecurityGroupItem;
+  // for supporting back compatibility
   subnetNames?: string[];
   securityGroupNames?: string[];
 }
 
 export interface FuncVPCDiscovery extends VPCDiscovery {
+}
+
+export interface VPC {
+  subnetIds?: string[];
+  securityGroupIds?: string[];
 }
 
 export interface ServerlessInstance {
@@ -29,7 +43,6 @@ export interface ServerlessInstance {
       }
     },
     custom: {
-      vpc: VPCDiscovery | undefined, // Deprecated
       vpcDiscovery: VPCDiscovery | undefined
     },
   };

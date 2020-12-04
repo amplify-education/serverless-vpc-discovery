@@ -3,6 +3,7 @@
 import { ServerlessInstance } from "./types";
 import { LambdaFunction } from "./common/lambda-function";
 import Globals from "./globals";
+import { validateVPCDiscoveryConfig } from "./validation";
 
 class VPCPlugin {
   private serverless: ServerlessInstance;
@@ -35,21 +36,43 @@ class VPCPlugin {
    */
   public validateCustomVPCDiscoveryConfig (): void {
     const config = this.serverless.service.custom;
-    if (config && !config.vpcDiscovery && config.vpc) {
-      config.vpcDiscovery = config.vpc;
-      Globals.logWarning(
-        "The `vpc` option of `custom` config is deprecated and will be removed in the future. " +
-        "Please use the `vpcDiscovery` option instead."
-      );
-    }
-    const vpc = config && config.vpcDiscovery;
-    // Checking the vpcDiscovery config is setup correctly if exists
-    if (vpc && (vpc.vpcName == null || (vpc.subnetNames == null && vpc.securityGroupNames == null))) {
-      throw new Error(
-        "The `custom.vpcDiscovery` is not configured correctly. " +
-        "You must specify the vpcName and at least one of subnetNames or securityGroupNames. " +
-        "Please see README for proper setup."
-      );
+    const vpcDiscovery = config && config.vpcDiscovery;
+
+    if (vpcDiscovery) {
+      // support backward compatibility
+      if (vpcDiscovery.subnetNames || vpcDiscovery.securityGroupNames) {
+        // convert `vpcDiscovery.subnetNames` or `vpcDiscovery.securityGroupNames` to the new config structure
+        if (!vpcDiscovery.subnets && !vpcDiscovery.securityGroups) {
+          if (vpcDiscovery.subnetNames) {
+            vpcDiscovery.subnets.tagKey = "Name";
+            vpcDiscovery.subnets.tagValues = vpcDiscovery.subnetNames;
+          }
+          if (vpcDiscovery.securityGroupNames) {
+            vpcDiscovery.securityGroups.names = vpcDiscovery.securityGroupNames;
+          }
+          Globals.logWarning(
+            "The `vpcDiscovery.subnetNames` and `vpcDiscovery.securityGroupNames` options are deprecated " +
+            "and will be removed in the future. Please see README for proper setup."
+          );
+        } else {
+          // log warning in case mixed config specified
+          Globals.logWarning(
+            "The `vpcDiscovery.subnetNames` or `vpcDiscovery.securityGroupNames` is specified " +
+            "but will not be applied. Please remove mentioned option to not see this warning message."
+          );
+        }
+      }
+
+      // validate config
+      try {
+        // the validateVPCDiscoveryConfig is general for custom and func configs
+        // so try catch for extend error message with `custom.vpcDiscovery` as a source
+        validateVPCDiscoveryConfig(vpcDiscovery);
+      } catch (e) {
+        throw new Error(
+          `The \`custom.vpcDiscovery\` is not configured correctly: \n${e} ` + " Please see README for proper setup."
+        );
+      }
     }
   }
 
@@ -88,17 +111,17 @@ class VPCPlugin {
         // init vpc empty config in case not exists
         func.vpc = func.vpc || {};
         // log warning in case vpc.subnetIds and vpcDiscovery.subnetNames are specified.
-        if (func.vpc.subnetIds && func.vpcDiscovery && func.vpcDiscovery.subnetNames) {
+        if (func.vpc.subnetIds && func.vpcDiscovery && func.vpcDiscovery.subnets) {
           Globals.logWarning(
             `vpc.subnetIds' are specified for the function '${funcName}' 
-            and overrides 'vpcDiscovery.subnetNames' discovery config.`
+            and overrides 'vpcDiscovery.subnets' discovery config.`
           );
         }
         // log warning in case vpc.securityGroupIds and vpcDiscovery.securityGroupNames are specified.
-        if (func.vpc.securityGroupIds && func.vpcDiscovery && func.vpcDiscovery.securityGroupNames) {
+        if (func.vpc.securityGroupIds && func.vpcDiscovery && func.vpcDiscovery.securityGroups) {
           Globals.logWarning(
             `vpc.securityGroupIds' are specified for the function '${funcName}' 
-            and overrides 'vpcDiscovery.securityGroupNames' discovery config.`
+            and overrides 'vpcDiscovery.securityGroups' discovery config.`
           );
         }
 
