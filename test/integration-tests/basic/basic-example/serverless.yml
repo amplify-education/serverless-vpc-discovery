@@ -1,0 +1,42 @@
+# basic example
+service: test-sls-vpc-dicovery-${opt:RANDOM_STRING}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  endpointType: regional
+  stage: test
+
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    # inherit basic config
+  helloWorld1:
+    handler: handler.helloWorld
+    # skip vpc configuration
+    vpcDiscovery: false
+  helloWorld2:
+    handler: handler.helloWorld
+    # inherit basic subnet ids and use func security group ids
+    vpcDiscovery:
+      vpcName: ${env:TEST_VPC_NAME}
+      securityGroupNames:
+        - ${env:TEST_VPC_NAME}_maintenance
+
+plugins:
+  - serverless-vpc-discovery
+
+custom:
+  vpcDiscovery:
+    vpcName: ${env:TEST_VPC_NAME}
+    subnetNames:
+      - ${env:TEST_VPC_NAME}_intranet_us-west-2a
+      - ${env:TEST_VPC_NAME}_intranet_us-west-2b
+      - ${env:TEST_VPC_NAME}_intranet_us-west-2c
+    securityGroupNames:
+      - ${env:TEST_VPC_NAME}_intranet
+
+package:
+  exclude:
+    - node_modules/**

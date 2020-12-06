@@ -8,6 +8,29 @@
 
 The vpc discovery plugin takes the given vpc, subnet, and security group names in the serverless file to setup the vpc configuration for the lambda.
 
+Basically we use this config:
+```
+vpcDiscovery:
+    vpcName: '${opt:env}'
+    subnetNames: # optional if securityGroupNames are specified
+      - '${opt:env}_<name of subnet>'
+    securityGroupNames: # optional if subnetNames are specified
+      - '${opt:env}_<name of security group>'
+```
+To generate this config:
+```
+vpc:
+    subnetIds:
+        - subnet-123456789
+        ...
+    securityGroupIds:
+        - sg-123456789
+        ...
+```
+For each lambda function.
+      
+> Note: The core serverless `provider.vpc` settings will be used, if they are set, instead of `vpcDiscovery`. You can use also mix settings. For example you may set `provider.vpc.subnetIds` while using `vpcDiscovery` to set the `securityGroupIds`. Take a look at [official documentation](https://www.serverless.com/framework/docs/providers/aws/guide/functions#vpc-configuration). 
+
 # About Amplify
 Amplify builds innovative and compelling digital educational products that empower teachers and students across the country. We have a long history as the leading innovator in K-12 education - and have been described as the best tech company in education and the best education company in tech. While others try to shrink the learning experience into the technology, we use technology to expand what is possible in real classrooms with real students and teachers.
 
@@ -40,15 +63,42 @@ Then make the following edits to your serverless.yaml file:
 plugins:
   - serverless-vpc-discovery
 
+# Optional: Either set `custom.vpcDiscovery` or `functions.<function name>.vpcDiscovery`
 custom:
-  vpc:
+  vpcDiscovery:
     vpcName: '${opt:env}'
-    subnetNames:
-      - '${opt:env}_NAME OF SUBNET'
-    securityGroupNames:
-      - '${opt:env}_NAME OF SECURITY GROUP'
+    subnetNames: # optional if securityGroupNames are specified
+      - '${opt:env}_<name of subnet>'
+    securityGroupNames: # optional if subnetNames are specified
+      - '${opt:env}_<name of security group>'
+
+# (Optional) set a config for the specific function
+functions:
+  example1:
+    handler: handler.example
+    # inherit `custom.vpcDiscovery` config if specified
+  example2:
+    handler: handler.example
+    # skip vpc configuration
+    vpcDiscovery: false
+  example3:
+    handler: handler.example
+    # inherit `custom.vpcDiscovery` and override security group names
+    vpcDiscovery:
+      vpcName: '${opt:env}'
+      securityGroupNames:
+        - '${opt:env}_<name of security group>'
+  example4:
+    handler: handler.example
+    # override basic subnet names and security group names
+    vpcDiscovery:
+      vpcName: '${opt:env}'
+      subnetNames: # optional if securityGroupNames are specified
+        - '${opt:env}_<name of subnet>'
+      securityGroupNames:  # optional if subnetNames are specified
+        - '${opt:env}_<name of security group>'        
 ```
-> NOTE: The naming pattern we used here was building off the vpc name for the subnet and security group by extending it with the the subnet and security group name. This makes it easier to switch to different vpcs by changing the environment variable in the command line
+> NOTE: The naming pattern we used here was building off the vpc name for the subnet and security group by extending it with the the subnet and security group name. This makes it easier to switch to different vpcs by changing the environment variable in the command line.
 
 ## Running Tests
 To run the test:
@@ -60,6 +110,13 @@ All tests should pass.
 If there is an error update the node_module inside the serverless-vpc-discovery folder:
 ```
 npm install
+```
+
+To run integration tests, set an environment variable TEST_VPC_NAME to the VPC you will be testing for. Then,
+```
+export AWS_PROFILE=your_profile
+export TEST_VPC_NAME=vpc_name
+npm run integration-test
 ```
 
 ## Deploying with the plugin

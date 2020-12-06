@@ -1,6 +1,6 @@
 {
   "name": "@env0/serverless-vpc-discovery",
-  "version": "1.0.18",
+  "version": "2.2.1",
   "engines": {
     "node": ">=4.0"
   },
@@ -9,8 +9,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/amplify-education/serverless-vpc-discovery"
+    "url": "git+https://github.com/amplify-education/serverless-vpc-discovery.git"
   },
+  "bugs": {
+    "url": "https://github.com/amplify-education/serverless-vpc-discovery/issues"
+  },
+  "homepage": "https://github.com/amplify-education/serverless-vpc-discovery#readme",
   "keywords": [
     "serverless discovery VPC",
     "serverless plugins",
@@ -23,25 +27,54 @@
     "amazon web services",
     "serverless.com"
   ],
-  "main": "index.js",
+  "main": "dist/src/index.js",
   "bin": {},
   "scripts": {
-    "test": "node ./node_modules/istanbul/lib/cli.js cover _mocha -- -R spec && node ./node_modules/istanbul/lib/cli.js check-coverage --line 70 coverage/coverage.json",
-    "lint": "eslint ."
+    "test": "nyc mocha -r ts-node/register --project tsconfig.json test/unit-tests/index.test.ts && nyc report --reporter=text-summary",
+    "integration-test": "nyc mocha -r ts-node/register --project tsconfig.json test/integration-tests/*.test.ts && nyc report --reporter=text-summary",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "build": "tsc --project ."
+  },
+  "files": [
+    "*.js",
+    "*.ts",
+    "*.json",
+    "dist/**/*.js"
+  ],
+  "nyc": {
+    "extension": [
+      ".ts"
+    ]
   },
   "devDependencies": {
-    "aws-sdk-mock": "^1.6.1",
-    "chai": "^3.5.0",
-    "eslint": "^3.18.0",
-    "eslint-config-airbnb": "^14.1.0",
-    "eslint-plugin-import": "^2.2.0",
-    "eslint-plugin-jsx-a11y": "^4.0.0",
-    "eslint-plugin-react": "^6.10.3",
-    "istanbul": "^0.4.5",
-    "mocha": "^2.2.5"
+    "@types/mocha": "^8.0.4",
+    "@types/node": "^14.14.10",
+    "@typescript-eslint/eslint-plugin": "^4.8.2",
+    "@typescript-eslint/parser": "^4.8.2",
+    "aws-sdk-mock": "^5.1.0",
+    "chai": "^4.2.0",
+    "chai-spies": "^1.0.0",
+    "eslint": "^7.14.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "6.4.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.21.5",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "js-yaml": "^3.14.0",
+    "mocha": "^8.2.1",
+    "mocha-param": "^2.0.1",
+    "nyc": "^15.1.0",
+    "randomstring": "^1.1.5",
+    "serverless": "^2.13.0",
+    "shelljs": "^0.8.4",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.1.2"
   },
   "dependencies": {
-    "aws-sdk": "^2.2.33",
-    "underscore": "^1.8.3"
+    "aws-sdk": "^2.799.0"
   }
 }
