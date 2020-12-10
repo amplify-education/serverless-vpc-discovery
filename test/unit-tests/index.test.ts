@@ -216,12 +216,6 @@ describe("Given input missing in AWS for ", () => {
     plugin.initResources();
   });
 
-  const funcVPCDiscovery: FuncVPCDiscovery = {
-    vpcName: "test",
-    subnetNames: ["test_subnet_*"],
-    securityGroupNames: ["test_group_*"]
-  };
-
   it('Subnets', async () => {
     const funcVPCDiscovery: FuncVPCDiscovery = {
       vpcName: "test",
