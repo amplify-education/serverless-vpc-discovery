@@ -19,10 +19,12 @@ export class EC2Wrapper {
     const vpc: VPC = {};
     const vpcId = await this.getVpcId(vpcDiscovery.vpcName);
     if (vpcDiscovery.subnets) {
-      vpc.subnetIds = await this.getSubnetIds(vpcId, vpcDiscovery.subnets.tagKey, vpcDiscovery.subnets.tagValues);
+      const subnets = vpcDiscovery.subnets;
+      vpc.subnetIds = await this.getSubnetIds(vpcId, subnets.tagKey, subnets.tagValues);
     }
     if (vpcDiscovery.securityGroups) {
-      vpc.securityGroupIds = await this.getSecurityGroupIds(vpcId, vpcDiscovery.securityGroupNames);
+      const groups = vpcDiscovery.securityGroups;
+      vpc.securityGroupIds = await this.getSecurityGroupIds(vpcId, groups.names, groups.tagKey, groups.tagValues);
     }
     return vpc;
   }
@@ -95,7 +97,7 @@ export class EC2Wrapper {
     });
 
     if (missingSubnetValues.length) {
-      Globals.logError(
+      throw new Error(
         `Subnets do not exist for the tag '${tagKey}' and tag values: '${missingSubnetValues}'. ` +
         "Please check the `tagKey` and `tagValues` are correct or remove it."
       );
@@ -146,7 +148,7 @@ export class EC2Wrapper {
       });
 
       if (missingGroupsNames.length) {
-        Globals.logError(
+        throw new Error(
           `Security groups do not exist for the names: ${missingGroupsNames}. ` +
           "Please check the 'names' are correct or remove it."
         );
@@ -164,7 +166,7 @@ export class EC2Wrapper {
         return subnetsByName.length === 0;
       });
       if (missingGroupsTagNames.length) {
-        Globals.logError(
+        throw new Error(
           `Security groups do not exist for the tag '${tagKey}' and tag values: '${missingGroupsTagNames}'. ` +
           "Please check the 'tagKey' and 'tagValues' are correct or remove it."
         );

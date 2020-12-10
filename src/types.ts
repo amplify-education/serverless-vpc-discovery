@@ -11,8 +11,8 @@ export interface SecurityGroupItem {
 
 export interface VPCDiscovery {
   vpcName: string;
-  subnets?: SubnetItem;
-  securityGroups?: SecurityGroupItem;
+  subnets?: SubnetItem[];
+  securityGroups?: SecurityGroupItem[];
   // for supporting back compatibility
   subnetNames?: string[];
   securityGroupNames?: string[];

@@ -12,10 +12,16 @@ Basically we use this config:
 ```
 vpcDiscovery:
     vpcName: '${opt:env}'
-    subnetNames: # optional if securityGroupNames are specified
-      - '${opt:env}_<name of subnet>'
-    securityGroupNames: # optional if subnetNames are specified
-      - '${opt:env}_<name of security group>'
+    subnets: # optional if `securityGroups` are specified
+        tagKey: <tag_name>
+        tagValues:
+            - '${opt:env}_<name of subnet>'
+    securityGroups: # optional if `subnetNames` are specified
+        tagKey: <tag_name> # optional if `names` are specified
+        tagValues: # optional if `names` are specified
+            - '${opt:env}_<name of subnet>'
+        names: # optional if `tagKey` and `tagValues` are specified
+        - '${opt:env}_<name of security group>'
 ```
 To generate this config:
 ```

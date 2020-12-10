@@ -34,16 +34,20 @@ export class LambdaFunction {
 
     // validate func vpcDiscovery config
     try {
-      validateVPCDiscoveryConfig(funcVPCDiscovery);
+      validateVPCDiscoveryConfig(vpcDiscovery);
     } catch (e) {
       Globals.logError(
         `The function '${funcName}' is not configured correctly: ${e}. VPC not configured. ` +
-        "Please see the README for the proper setup.",
-        true
+        "Please see the README for the proper setup."
       );
       return null;
     }
 
-    return await this.ec2Wrapper.getVpcConfig(vpcDiscovery);
+    try {
+      return await this.ec2Wrapper.getVpcConfig(vpcDiscovery);
+    } catch (e) {
+      Globals.logError(`The function '${funcName}' VPC not configured based on the error: ${e}.`);
+    }
+    return null;
   }
 }

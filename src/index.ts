@@ -39,26 +39,26 @@ class VPCPlugin {
     const vpcDiscovery = config && config.vpcDiscovery;
 
     if (vpcDiscovery) {
+      console.log(vpcDiscovery);
       // support backward compatibility
       if (vpcDiscovery.subnetNames || vpcDiscovery.securityGroupNames) {
         // convert `vpcDiscovery.subnetNames` or `vpcDiscovery.securityGroupNames` to the new config structure
         if (!vpcDiscovery.subnets && !vpcDiscovery.securityGroups) {
           if (vpcDiscovery.subnetNames) {
-            vpcDiscovery.subnets.tagKey = "Name";
-            vpcDiscovery.subnets.tagValues = vpcDiscovery.subnetNames;
+            vpcDiscovery.subnets = [{ tagKey: "Name", tagValues: vpcDiscovery.subnetNames }];
           }
           if (vpcDiscovery.securityGroupNames) {
-            vpcDiscovery.securityGroups.names = vpcDiscovery.securityGroupNames;
+            vpcDiscovery.securityGroups = [{ names: vpcDiscovery.securityGroupNames }];
           }
           Globals.logWarning(
             "The `vpcDiscovery.subnetNames` and `vpcDiscovery.securityGroupNames` options are deprecated " +
             "and will be removed in the future. Please see README for proper setup."
           );
         } else {
-          // log warning in case mixed config specified
+          // log warning in case mixed config are specified
           Globals.logWarning(
-            "The `vpcDiscovery.subnetNames` or `vpcDiscovery.securityGroupNames` is specified " +
-            "but will not be applied. Please remove mentioned option to not see this warning message."
+            "The `vpcDiscovery.subnetNames` and `vpcDiscovery.securityGroupNames` are deprecated " +
+            "and will not be applied. Please remove mentioned option to not see this warning message."
           );
         }
       }
@@ -103,6 +103,7 @@ class VPCPlugin {
         // eslint-disable-next-line
         const func = service.functions[funcName];
         const funcVPC = await this.lambdaFunction.getFuncVPC(funcName, func.vpcDiscovery);
+        console.log(funcName, funcVPC);
 
         if (!funcVPC) {
           continue;

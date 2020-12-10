@@ -5,13 +5,16 @@ import { FuncVPCDiscovery, SecurityGroupItem, SubnetItem, VPCDiscovery } from ".
  * @param subnets - the `SubnetItem` options
  * @returns
  */
-function validateVPCSubnets (subnets: SubnetItem) {
-  // The `subnets` should have `tagKey` and `tagValues`
-  if (!subnets.tagKey || !subnets.tagValues || !subnets.tagValues.length) {
-    throw new Error(
-      "The `vpcDiscovery.subnets` requires `tagKey`, `tagValues` options and it should not be empty."
-    );
-  }
+function validateVPCSubnets (subnets: SubnetItem[]) {
+  subnets.forEach((subnet) => {
+    // The `subnets` should have `tagKey` and `tagValues`
+    if (!subnet.tagKey || !Array.isArray(subnet.tagValues) || !subnet.tagValues.length) {
+      throw new Error(
+        "The `vpcDiscovery.subnets` requires `tagKey` and `tagValues` options. " +
+        "The `tagValues` should be an array and not empty."
+      );
+    }
+  });
 }
 
 /**
@@ -19,19 +22,21 @@ function validateVPCSubnets (subnets: SubnetItem) {
  * @param securityGroups - the `SecurityGroupItem` options
  * @returns
  */
-function validateVPCSecurityGroups (securityGroups: SecurityGroupItem) {
-  if (!securityGroups.names && (!securityGroups.tagKey || !securityGroups.tagValues)) {
-    throw new Error(
-      "The `vpcDiscovery.securityGroups` requires at least one of `tagKey`, `tagValues` or `names` option(s) " +
-      "and it should not be empty."
-    );
-  }
-  if (securityGroups.tagKey && (!securityGroups.tagValues || !securityGroups.tagValues.length)) {
-    throw new Error("The `vpcDiscovery.securityGroups.tagValues` should not be empty.");
-  }
-  if (securityGroups.tagValues && !securityGroups.tagKey) {
-    throw new Error("The `vpcDiscovery.securityGroups.tagValues` should not be empty.");
-  }
+function validateVPCSecurityGroups (securityGroups: SecurityGroupItem[]) {
+  securityGroups.forEach((securityGroup) => {
+    if (!securityGroup.names && (!securityGroup.tagKey || !securityGroup.tagValues)) {
+      throw new Error(
+        "The `vpcDiscovery.securityGroups` requires at least one of `tagKey`, `tagValues` or `names` option(s). " +
+        "The `names` and `tagValues` should be arrays and not empty."
+      );
+    }
+    if (securityGroup.tagKey && (!Array.isArray(securityGroup.tagValues) || !securityGroup.tagValues.length)) {
+      throw new Error("The `vpcDiscovery.securityGroups.tagValues` should be an array and not empty.");
+    }
+    if (securityGroup.tagValues && !securityGroup.tagKey) {
+      throw new Error("The `vpcDiscovery.securityGroups.tagValues` should not be empty.");
+    }
+  });
 }
 
 /**
