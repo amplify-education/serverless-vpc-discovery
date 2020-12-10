@@ -87,7 +87,6 @@ function replaceAll (input: string, search: string, replace: string) {
 function arnMatches (inputArn: string, actualArn: string) {
   const noColon = "[^:]";
   const inputArnRegexStr = replaceAll(replaceAll(inputArn, "?", noColon), "*", `${noColon}*`);
-  // eslint-disable-next-line security/detect-non-literal-regexp
   const inputArnRegex = new RegExp(`^${inputArnRegexStr}$`);
 
   return inputArnRegex.test(actualArn);
