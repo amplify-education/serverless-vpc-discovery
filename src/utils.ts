@@ -80,16 +80,16 @@ function isObjectEmpty (object: Object): boolean {
   return Object.keys(object).length === 0;
 }
 
+function replaceAll (input: string, search: string, replace: string) {
+  return input.split(search).join(replace);
+}
+
 function arnMatches (inputArn: string, actualArn: string) {
   const noColon = "[^:]";
   const inputArnRegexStr = replaceAll(replaceAll(inputArn, "?", noColon), "*", `${noColon}*`);
   const inputArnRegex = new RegExp(`^${inputArnRegexStr}$`);
 
   return inputArnRegex.test(actualArn);
-}
-
-function replaceAll (input: string, search: string, replace: string) {
-  return input.split(search).join(replace);
 }
 
 export {
