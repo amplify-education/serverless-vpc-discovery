@@ -17,14 +17,25 @@ const testCreds = {
 };
 const vpc = "test";
 const subnets = [
-  "test_subnet_1",
-  "test_subnet_2",
-  "test_subnet_3"
+  {
+    tagKey: "Name",
+    tagValues: [
+      "test_subnet_1",
+      "test_subnet_2",
+      "test_subnet_3"
+    ]
+  }
 ];
-const securityGroups = ["test_group_1"];
+const securityGroups = [
+  {
+    names: ["test_group_1"]
+  }
+];
 const vpcId = "vpc-test";
 
 // This will create a mock plugin to be used for testing
+const testFuncName = "funcTest";
+let consoleOutput = [];
 const constructPlugin = (vpcConfig) => {
   const serverless = {
     service: {
@@ -32,14 +43,15 @@ const constructPlugin = (vpcConfig) => {
         region: "us-moon-1"
       },
       functions: {
-        funcTest: {}
+        [testFuncName]: {}
       },
       custom: {
         vpcDiscovery: vpcConfig
       }
     },
     cli: {
-      log () {
+      log (str: string) {
+        consoleOutput.push(str);
       }
     },
     providers: {
@@ -52,12 +64,16 @@ const constructPlugin = (vpcConfig) => {
   return new VPCPlugin(serverless);
 };
 
+const initMessage = "Info: Updating VPC config...";
+const initFuncMessage = `Info: Getting VPC config for the function: '${testFuncName}'\n`;
+const foundFuncMessage = `Info: Found VPC with id '${vpcId}'`;
+
 describe("serverless-vpc-plugin", () => {
   it("check aws config", () => {
     const plugin = constructPlugin({
       vpcName: vpc,
-      subnetNames: subnets,
-      securityGroupNames: securityGroups
+      subnets: subnets,
+      securityGroups: securityGroups
     });
     plugin.initResources();
 
@@ -79,8 +95,8 @@ describe("Given a vpc,", () => {
 
     const plugin = constructPlugin({
       vpcName: vpc,
-      subnetNames: subnets,
-      securityGroupNames: securityGroups
+      subnets: subnets,
+      securityGroups: securityGroups
     });
     plugin.validateCustomVPCDiscoveryConfig();
     plugin.initResources();
@@ -105,18 +121,19 @@ describe("Given a vpc,", () => {
 
     const funcVPCDiscovery: FuncVPCDiscovery = {
       vpcName: "test",
-      subnetNames: ["test_subnet"]
+      subnets: [{ tagKey: "Name", tagValues: ["test_subnet"] }]
     };
 
     return await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
-      throw new Error("No error thrown for invalid VPC options");
-    }, (err) => {
-      expect(err.message).to.equal("Invalid vpc name, it does not exist");
+      const expectedMessage = `VPC with tag key 'Name' and tag value '${funcVPCDiscovery.vpcName}' does not exist`;
+      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(consoleOutput[1]).to.contain(expectedMessage);
     });
   });
 
   afterEach(() => {
     AWS.restore();
+    consoleOutput = [];
   });
 });
 
@@ -129,13 +146,13 @@ describe("Given valid inputs for Subnets and Security Groups ", () => {
 
     plugin = constructPlugin({});
     plugin.initResources();
-  })
+  });
 
   it("without wildcards", async () => {
     const funcVPCDiscovery: FuncVPCDiscovery = {
       vpcName: "test",
-      subnetNames: ["test_subnet_1", "test_subnet_2", "test_subnet_3"],
-      securityGroupNames: ["test_group_1"]
+      subnets: subnets,
+      securityGroups: securityGroups
     };
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then((vpc) => {
@@ -147,8 +164,8 @@ describe("Given valid inputs for Subnets and Security Groups ", () => {
   it("with wildcards", async () => {
     const funcVPCDiscovery: FuncVPCDiscovery = {
       vpcName: "test",
-      subnetNames: ["test_subnet_*"],
-      securityGroupNames: ["test_group_*"]
+      subnets: [{ tagKey: "Name", tagValues: ["test_subnet_*"] }],
+      securityGroups: [{ names: ["test_group_*"] }]
     };
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then((vpc) => {
@@ -159,6 +176,7 @@ describe("Given valid inputs for Subnets and Security Groups ", () => {
 
   afterEach(() => {
     AWS.restore();
+    consoleOutput = [];
   });
 });
 
@@ -172,8 +190,8 @@ describe("Given invalid input for ", () => {
 
   const funcVPCDiscovery: FuncVPCDiscovery = {
     vpcName: "test",
-    subnetNames: ["test_subnet_1"],
-    securityGroupNames: ["test_group_1"]
+    subnets: [{ tagKey: "Name", tagValues: ["test_subnet_1"] }],
+    securityGroups: [{ names: ["test_group_1"] }]
   };
 
   it("Subnets", async () => {
@@ -182,9 +200,10 @@ describe("Given invalid input for ", () => {
     plugin.initResources();
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
-      throw new Error("Test has failed. Subnets were created with invalid inputs");
-    }, (err) => {
-      expect(err.message).to.equal("Invalid subnet name, it does not exist");
+      const expectedMessage = `Subnets with vpc id '${vpcId}', tag key 'Name' and tag values '${funcVPCDiscovery.subnets[0].tagValues}' do not exist`;
+      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(consoleOutput[1]).to.equal(foundFuncMessage);
+      expect(consoleOutput[2]).to.contain(expectedMessage);
     });
   });
 
@@ -194,14 +213,16 @@ describe("Given invalid input for ", () => {
     plugin.initResources();
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
-      throw new Error("Test has failed. Security Groups were created with invalid inputs");
-    }, (err) => {
-      expect(err.message).to.equal("Invalid security group name, it does not exist");
+      const expectedMessage = `Security groups with vpc id '${vpcId}', names '${securityGroups[0].names[0]}' do not exist`;
+      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(consoleOutput[1]).to.equal(foundFuncMessage);
+      expect(consoleOutput[2]).to.contain(expectedMessage);
     });
   });
 
   afterEach(() => {
     AWS.restore();
+    consoleOutput = [];
   });
 });
 
@@ -216,38 +237,42 @@ describe("Given input missing in AWS for ", () => {
     plugin.initResources();
   });
 
-  it('Subnets', async () => {
+  it("Subnets", async () => {
     const funcVPCDiscovery: FuncVPCDiscovery = {
       vpcName: "test",
-      subnetNames: ["test_subnet_*", "missing_subnet"],
-      securityGroupNames: ["test_group_*"]
+      subnets: [{ tagKey: "Name", tagValues: ["test_subnet_*", "missing_subnet"] }],
+      securityGroups: [{ names: ["test_group_*"] }]
+    };
+    plugin.initResources();
+
+    await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
+      const expectedMessage = `Subnets with vpc id '${vpcId}', tag key 'Name' and tag values 'missing_subnet' do not exist.`;
+      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(consoleOutput[1]).to.equal(foundFuncMessage);
+      expect(consoleOutput[2]).to.contain(expectedMessage);
+    });
+  });
+
+  it("Security Groups", async () => {
+    const funcVPCDiscovery: FuncVPCDiscovery = {
+      vpcName: "test",
+      subnets: [{ tagKey: "Name", tagValues: ["test_subnet_*"] }],
+      securityGroups: [{ names: ["test_group_*", "missing_security_group"] }]
     };
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
-      throw new Error("Test has failed. Security Groups were created with invalid inputs");
-    }, (err) => {
-      expect(err.message).to.equal("Subnets do not exist for the names: missing_subnet. Please check the names are correct or remove it.");
+      const expectedMessage = "Security groups do not exist for the names";
+      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(consoleOutput[1]).to.equal(foundFuncMessage);
+      expect(consoleOutput[2]).to.contain(expectedMessage);
     });
-  })
-
-  it('Security Groups', async () => {
-    const funcVPCDiscovery: FuncVPCDiscovery = {
-      vpcName: "test",
-      subnetNames: ["test_subnet_*"],
-      securityGroupNames: ["test_group_*", "missing_security_group"]
-    };
-
-    await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
-      throw new Error("Test has failed. Security Groups were created with invalid inputs");
-    }, (err) => {
-      expect(err.message).to.equal("Security groups do not exist for the names: missing_security_group. Please check the names are correct or remove it.");
-    });
-  })
+  });
 
   afterEach(() => {
     AWS.restore();
+    consoleOutput = [];
   });
-})
+});
 
 describe("Catching errors in updateVpcConfig ", () => {
   it("AWS api call describeVpcs fails", async () => {
@@ -255,17 +280,17 @@ describe("Catching errors in updateVpcConfig ", () => {
 
     const plugin = constructPlugin({
       vpcName: vpc,
-      subnetNames: subnets,
-      securityGroupNames: securityGroups
+      subnets: subnets,
+      securityGroups: securityGroups
     });
     plugin.validateCustomVPCDiscoveryConfig();
     plugin.initResources();
-    return await plugin.updateFunctionsVpcConfig().then(() => {
-      throw new Error("Test has failed. updateVpcConfig did not catch errors.");
-    }, (err) => {
-      const expectedErrorMessage = "Invalid vpc name, it does not exist";
-      expect(err.message).to.equal(expectedErrorMessage);
-      AWS.restore();
+
+    await plugin.updateFunctionsVpcConfig().then(() => {
+      const expectedErrorMessage = `VPC with tag key 'Name' and tag value '${vpc}' does not exist.`;
+      expect(consoleOutput[0]).to.equal(initMessage);
+      expect(consoleOutput[1]).to.equal(initFuncMessage);
+      expect(consoleOutput[2]).to.contain(expectedErrorMessage);
     });
   });
 
@@ -277,11 +302,15 @@ describe("Catching errors in updateVpcConfig ", () => {
     try {
       plugin.validateCustomVPCDiscoveryConfig();
     } catch (err) {
-      const expectedErrorMessage = "The `custom.vpcDiscovery` is not configured correctly. " +
-        "You must specify the vpcName and at least one of subnetNames or securityGroupNames. " +
-        "Please see README for proper setup.";
+      const expectedErrorMessage = "The `custom.vpcDiscovery` is not configured correctly: \n" +
+        "Error: 'vpcDiscovery.vpcName' is not specified.  Please see README for proper setup.";
       expect(err.message).to.equal(expectedErrorMessage);
       return true;
     }
+  });
+
+  afterEach(() => {
+    AWS.restore();
+    consoleOutput = [];
   });
 });

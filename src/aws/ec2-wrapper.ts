@@ -1,31 +1,12 @@
 import { EC2 } from "aws-sdk";
 import { getAWSPagedResults, wildcardMatches } from "../utils";
-import { VPC, VPCDiscovery } from "../types";
+import Globals from "../globals";
 
 export class EC2Wrapper {
   public ec2: EC2
 
   constructor (credentials: any) {
     this.ec2 = new EC2(credentials);
-  }
-
-  /**
-   * Gets the desired vpc with the designated subnets and security groups
-   * that were set in serverless config file
-   * @returns {Promise<object>}
-   */
-  public async getVpcConfig (vpcDiscovery: VPCDiscovery): Promise<VPC> {
-    const vpc: VPC = {};
-    const vpcId = await this.getVpcId(vpcDiscovery.vpcName);
-    if (vpcDiscovery.subnets) {
-      const subnets = vpcDiscovery.subnets;
-      vpc.subnetIds = await this.getSubnetIds(vpcId, subnets.tagKey, subnets.tagValues);
-    }
-    if (vpcDiscovery.securityGroups) {
-      const groups = vpcDiscovery.securityGroups;
-      vpc.securityGroupIds = await this.getSecurityGroupIds(vpcId, groups.names, groups.tagKey, groups.tagValues);
-    }
-    return vpc;
   }
 
   /**
@@ -49,7 +30,7 @@ export class EC2Wrapper {
       params
     );
     if (vpcItems.length === 0) {
-      throw new Error("Invalid vpc name, it does not exist");
+      throw new Error(`VPC with tag key 'Name' and tag value '${vpcName}' does not exist.`);
     }
     return vpcItems[0].VpcId;
   }
@@ -83,7 +64,7 @@ export class EC2Wrapper {
     );
 
     if (subnets.length === 0) {
-      throw new Error("Invalid input for the subnets, it does not exist");
+      throw new Error(`Subnets with vpc id '${vpcId}', tag key '${tagKey}' and tag values '${tagValues}' do not exist`);
     }
 
     const missingSubnetValues = tagValues.filter((tagValue) => {
@@ -96,8 +77,8 @@ export class EC2Wrapper {
     });
 
     if (missingSubnetValues.length) {
-      throw new Error(
-        `Subnets do not exist for the tag '${tagKey}' and tag values: '${missingSubnetValues}'. ` +
+      Globals.logError(
+        `Subnets with vpc id '${vpcId}', tag key '${tagKey}' and tag values '${missingSubnetValues}' do not exist. ` +
         "Please check the `tagKey` and `tagValues` are correct or remove it."
       );
     }
@@ -114,7 +95,7 @@ export class EC2Wrapper {
    * @returns {Promise.<string[]>}
    */
   public async getSecurityGroupIds (vpcId: string, names?: string[], tagKey?: string, tagValues?: string[]): Promise<string[]> {
-    // init filter just by vpc id
+    // init filter by vpc id
     const params = { Filters: [{ Name: "vpc-id", Values: [vpcId] }] };
     // update filters with names if specified
     if (names) {
@@ -134,7 +115,9 @@ export class EC2Wrapper {
     );
 
     if (securityGroups.length === 0) {
-      throw new Error("Invalid security group name, it does not exist");
+      const namesErrorText = names ? `, names '${names}'` : "";
+      const tagErrorText = tagKey && tagValues ? `, tag key '${tagKey}' and tag values '${tagValues}'` : "";
+      throw new Error(`Security groups with vpc id '${vpcId}'${namesErrorText}${tagErrorText} do not exist`);
     }
 
     if (names) {
@@ -147,7 +130,7 @@ export class EC2Wrapper {
       });
 
       if (missingGroupsNames.length) {
-        throw new Error(
+        Globals.logError(
           `Security groups do not exist for the names: ${missingGroupsNames}. ` +
           "Please check the 'names' are correct or remove it."
         );
@@ -165,7 +148,7 @@ export class EC2Wrapper {
         return subnetsByName.length === 0;
       });
       if (missingGroupsTagNames.length) {
-        throw new Error(
+        Globals.logError(
           `Security groups do not exist for the tag '${tagKey}' and tag values: '${missingGroupsTagNames}'. ` +
           "Please check the 'tagKey' and 'tagValues' are correct or remove it."
         );

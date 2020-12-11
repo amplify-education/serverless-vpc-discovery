@@ -34,7 +34,7 @@ function validateVPCSecurityGroups (securityGroups: SecurityGroupItem[]) {
       throw new Error("The `vpcDiscovery.securityGroups.tagValues` should be an array and not empty.");
     }
     if (securityGroup.tagValues && !securityGroup.tagKey) {
-      throw new Error("The `vpcDiscovery.securityGroups.tagValues` should not be empty.");
+      throw new Error("The `vpcDiscovery.securityGroups.tagKey` is required.");
     }
   });
 }
@@ -47,11 +47,19 @@ function validateVPCSecurityGroups (securityGroups: SecurityGroupItem[]) {
 function validateVPCDiscoveryConfig (vpcDiscovery: VPCDiscovery | FuncVPCDiscovery): void {
   // `vpcName` is required
   if (vpcDiscovery.vpcName == null) {
-    throw new Error("The `vpcDiscovery.vpcName` is not specified.");
+    throw new Error("'vpcDiscovery.vpcName' is not specified.");
   }
   // at least one of the `subnets` or `securityGroups` is required
   if (!vpcDiscovery.subnets && !vpcDiscovery.securityGroups) {
-    throw new Error("You must specify at least one of the `vpcDiscovery.subnets` or `vpcDiscovery.securityGroups`.");
+    throw new Error("You must specify at least one of the 'vpcDiscovery.subnets' or 'vpcDiscovery.securityGroups'.");
+  }
+
+  if (vpcDiscovery.subnets && (!Array.isArray(vpcDiscovery.subnets || !vpcDiscovery.subnets.length))) {
+    throw new Error("'vpcDiscovery.subnets' should be an array and not empty.");
+  }
+
+  if (vpcDiscovery.securityGroups && (!Array.isArray(vpcDiscovery.securityGroups || !vpcDiscovery.securityGroups.length))) {
+    throw new Error("'vpcDiscovery.securityGroups' should be an array and not empty.");
   }
 
   if (vpcDiscovery.subnets) {

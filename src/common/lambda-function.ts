@@ -36,18 +36,46 @@ export class LambdaFunction {
     try {
       validateVPCDiscoveryConfig(vpcDiscovery);
     } catch (e) {
-      Globals.logError(
-        `The function '${funcName}' is not configured correctly: ${e}. VPC not configured. ` +
+      throw new Error(
+        `Function '${funcName}' is not configured correctly: ${e} VPC not configured. ` +
         "Please see the README for the proper setup."
       );
-      return null;
     }
 
     try {
-      return await this.ec2Wrapper.getVpcConfig(vpcDiscovery);
+      Globals.logInfo(`Getting VPC config for the function: '${funcName}'\n`);
+      return await this.getVpcConfig(vpcDiscovery);
     } catch (e) {
-      Globals.logError(`The function '${funcName}' VPC not configured based on the error: ${e}.`);
+      Globals.logError(`Function '${funcName}' VPC not configured based on the error: ${e}`);
     }
     return null;
+  }
+
+  /**
+   * Gets the desired vpc with the designated subnets and security groups
+   * that were set in serverless config file
+   * @returns {Promise<object>}
+   */
+  private async getVpcConfig (vpcDiscovery: VPCDiscovery): Promise<VPC> {
+    const vpc: VPC = {};
+    const vpcId = await this.ec2Wrapper.getVpcId(vpcDiscovery.vpcName);
+
+    Globals.logInfo(`Found VPC with id '${vpcId}'`);
+
+    if (vpcDiscovery.subnets) {
+      vpc.subnetIds = [];
+      for (const subnet of vpcDiscovery.subnets) {
+        const subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, subnet.tagKey, subnet.tagValues);
+        vpc.subnetIds = vpc.subnetIds.concat(subnetIds);
+      }
+    }
+    if (vpcDiscovery.securityGroups) {
+      vpc.securityGroupIds = [];
+      for (const group of vpcDiscovery.securityGroups) {
+        const groupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, group.names, group.tagKey, group.tagValues);
+        vpc.securityGroupIds = vpc.securityGroupIds.concat(groupIds);
+      }
+    }
+    return vpc;
   }
 }

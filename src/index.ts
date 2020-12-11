@@ -39,7 +39,6 @@ class VPCPlugin {
     const vpcDiscovery = config && config.vpcDiscovery;
 
     if (vpcDiscovery) {
-      console.log(vpcDiscovery);
       // support backward compatibility
       if (vpcDiscovery.subnetNames || vpcDiscovery.securityGroupNames) {
         // convert `vpcDiscovery.subnetNames` or `vpcDiscovery.securityGroupNames` to the new config structure
@@ -103,7 +102,6 @@ class VPCPlugin {
         // eslint-disable-next-line
         const func = service.functions[funcName];
         const funcVPC = await this.lambdaFunction.getFuncVPC(funcName, func.vpcDiscovery);
-        console.log(funcName, funcVPC);
 
         if (!funcVPC) {
           continue;
