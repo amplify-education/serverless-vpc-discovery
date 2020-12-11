@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [2.3.0] - 2020-12-10
 ### Changed
-- Allow usage of wildcards in subnet and security group names. Thank you @RLRabinowitz (#41)
+- Allow usage of wildcards in subnet and security group names. Thank you @RLRabinowitz ([#41](https://github.com/amplify-education/serverless-vpc-discovery/pull/41))
 
 ## [2.2.1] - 2020-12-02
 ### Changed
