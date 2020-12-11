@@ -12,6 +12,10 @@ Also, support for security groups names.
 - ***Important!*** The `subnetNames` and `securityGroupNames` options have been deprecated but it still will work for a while. 
 The new option are `subnets` and `securityGroups`.
 
+## [2.3.0] - 2020-12-11
+### Changed
+- Allow usage of wildcards in subnet and security group names. Thank you @RLRabinowitz ([#41](https://github.com/amplify-education/serverless-vpc-discovery/pull/41))
+
 ## [2.2.1] - 2020-12-02
 ### Changed
 - Fixed travis build
