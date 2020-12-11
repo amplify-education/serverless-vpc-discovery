@@ -1,5 +1,5 @@
 import { EC2 } from "aws-sdk";
-import { getAWSPagedResults } from "../utils";
+import { getAWSPagedResults, wildcardMatches } from "../utils";
 import { VPC, VPCDiscovery } from "../types";
 
 export class EC2Wrapper {
@@ -87,7 +87,7 @@ export class EC2Wrapper {
       // collect subnets by name
       const subnetsByName = subnets.filter((subnet) => {
         const nameTag = subnet.Tags.find((tag) => tag.Key === "Name");
-        return nameTag.Value === subnetName;
+        return wildcardMatches(subnetName, nameTag.Value);
       });
       return subnetsByName.length === 0;
     });
@@ -134,7 +134,7 @@ export class EC2Wrapper {
     const missingGroupsNames = securityGroupNames.filter((groupName) => {
       // collect security groups by name
       const securityGroupsByName = securityGroups.filter((securityGroup) => {
-        return securityGroup.GroupName === groupName;
+        return wildcardMatches(groupName, securityGroup.GroupName);
       });
       return securityGroupsByName.length === 0;
     });

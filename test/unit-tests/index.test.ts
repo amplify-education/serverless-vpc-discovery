@@ -120,19 +120,35 @@ describe("Given a vpc,", () => {
   });
 });
 
-describe("Given valid inputs for ", () => {
-  it("Subnets", async () => {
+describe("Given valid inputs for Subnets and Security Groups ", () => {
+  let plugin;
+  beforeEach(() => {
     AWS.mock("EC2", "describeVpcs", testData);
     AWS.mock("EC2", "describeSecurityGroups", testData);
     AWS.mock("EC2", "describeSubnets", testData);
 
-    const plugin = constructPlugin({});
+    plugin = constructPlugin({});
     plugin.initResources();
+  })
 
+  it("without wildcards", async () => {
     const funcVPCDiscovery: FuncVPCDiscovery = {
       vpcName: "test",
       subnetNames: ["test_subnet_1", "test_subnet_2", "test_subnet_3"],
       securityGroupNames: ["test_group_1"]
+    };
+
+    await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then((vpc) => {
+      expect(vpc.subnetIds).to.have.members(["subnet-test-1", "subnet-test-2", "subnet-test-3"]);
+      expect(vpc.securityGroupIds).to.have.members(["sg-test"]);
+    });
+  });
+
+  it("with wildcards", async () => {
+    const funcVPCDiscovery: FuncVPCDiscovery = {
+      vpcName: "test",
+      subnetNames: ["test_subnet_*"],
+      securityGroupNames: ["test_group_*"]
     };
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then((vpc) => {
@@ -188,6 +204,50 @@ describe("Given invalid input for ", () => {
     AWS.restore();
   });
 });
+
+describe("Given input missing in AWS for ", () => {
+  let plugin;
+  beforeEach(() => {
+    AWS.mock("EC2", "describeVpcs", testData);
+    AWS.mock("EC2", "describeSubnets", testData);
+    AWS.mock("EC2", "describeSecurityGroups", testData);
+
+    plugin = constructPlugin({});
+    plugin.initResources();
+  });
+
+  it('Subnets', async () => {
+    const funcVPCDiscovery: FuncVPCDiscovery = {
+      vpcName: "test",
+      subnetNames: ["test_subnet_*", "missing_subnet"],
+      securityGroupNames: ["test_group_*"]
+    };
+
+    await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
+      throw new Error("Test has failed. Security Groups were created with invalid inputs");
+    }, (err) => {
+      expect(err.message).to.equal("Subnets do not exist for the names: missing_subnet. Please check the names are correct or remove it.");
+    });
+  })
+
+  it('Security Groups', async () => {
+    const funcVPCDiscovery: FuncVPCDiscovery = {
+      vpcName: "test",
+      subnetNames: ["test_subnet_*"],
+      securityGroupNames: ["test_group_*", "missing_security_group"]
+    };
+
+    await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
+      throw new Error("Test has failed. Security Groups were created with invalid inputs");
+    }, (err) => {
+      expect(err.message).to.equal("Security groups do not exist for the names: missing_security_group. Please check the names are correct or remove it.");
+    });
+  })
+
+  afterEach(() => {
+    AWS.restore();
+  });
+})
 
 describe("Catching errors in updateVpcConfig ", () => {
   it("AWS api call describeVpcs fails", async () => {
