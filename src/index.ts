@@ -1,6 +1,6 @@
 "use strict";
 
-import { ServerlessInstance } from "./types";
+import { FuncVPCDiscovery, ServerlessInstance, VPCDiscovery } from "./types";
 import { LambdaFunction } from "./common/lambda-function";
 import Globals from "./globals";
 import { validateVPCDiscoveryConfig } from "./validation";
@@ -40,27 +40,7 @@ class VPCPlugin {
 
     if (vpcDiscovery) {
       // support backward compatibility
-      if (vpcDiscovery.subnetNames || vpcDiscovery.securityGroupNames) {
-        // convert `vpcDiscovery.subnetNames` or `vpcDiscovery.securityGroupNames` to the new config structure
-        if (!vpcDiscovery.subnets && !vpcDiscovery.securityGroups) {
-          if (vpcDiscovery.subnetNames) {
-            vpcDiscovery.subnets = [{ tagKey: "Name", tagValues: vpcDiscovery.subnetNames }];
-          }
-          if (vpcDiscovery.securityGroupNames) {
-            vpcDiscovery.securityGroups = [{ names: vpcDiscovery.securityGroupNames }];
-          }
-          Globals.logWarning(
-            "The `vpcDiscovery.subnetNames` and `vpcDiscovery.securityGroupNames` options are deprecated " +
-            "and will be removed in the future. Please see README for proper setup."
-          );
-        } else {
-          // log warning in case mixed config are specified
-          Globals.logWarning(
-            "The `vpcDiscovery.subnetNames` and `vpcDiscovery.securityGroupNames` are deprecated " +
-            "and will not be applied. Please remove mentioned option to not see this warning message."
-          );
-        }
-      }
+      this.updateVPCDiscoveryConfig(vpcDiscovery);
 
       // validate config
       try {
@@ -70,6 +50,34 @@ class VPCPlugin {
       } catch (e) {
         throw new Error(
           `The \`custom.vpcDiscovery\` is not configured correctly: \n${e} ` + " Please see README for proper setup."
+        );
+      }
+    }
+  }
+
+  /**
+   * This function update VPC Discovery config to support version 2.x config structure and show warning errors
+   */
+  public updateVPCDiscoveryConfig (vpcDiscovery: VPCDiscovery | FuncVPCDiscovery): void {
+    // support backward compatibility
+    if (vpcDiscovery.subnetNames || vpcDiscovery.securityGroupNames) {
+      // convert `vpcDiscovery.subnetNames` or `vpcDiscovery.securityGroupNames` to the new config structure
+      if (!vpcDiscovery.subnets && !vpcDiscovery.securityGroups) {
+        if (vpcDiscovery.subnetNames) {
+          vpcDiscovery.subnets = [{ tagKey: "Name", tagValues: vpcDiscovery.subnetNames }];
+        }
+        if (vpcDiscovery.securityGroupNames) {
+          vpcDiscovery.securityGroups = [{ names: vpcDiscovery.securityGroupNames }];
+        }
+        Globals.logWarning(
+          "The `vpcDiscovery.subnetNames` and `vpcDiscovery.securityGroupNames` options are deprecated " +
+          "and will be removed in the future. Please see README for proper setup."
+        );
+      } else {
+        // log warning in case mixed config are specified
+        Globals.logWarning(
+          "The `vpcDiscovery.subnetNames` and `vpcDiscovery.securityGroupNames` are deprecated " +
+          "and will not be applied. Please remove mentioned option to not see this warning message."
         );
       }
     }
@@ -101,6 +109,8 @@ class VPCPlugin {
       for (const funcName in service.functions) {
         // eslint-disable-next-line
         const func = service.functions[funcName];
+        // update config to support
+        this.updateVPCDiscoveryConfig(func.vpcDiscovery);
         const funcVPC = await this.lambdaFunction.getFuncVPC(funcName, func.vpcDiscovery);
 
         if (!funcVPC) {
