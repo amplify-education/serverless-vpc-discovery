@@ -68,6 +68,8 @@ export class LambdaFunction {
         const subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, subnet.tagKey, subnet.tagValues);
         vpc.subnetIds = vpc.subnetIds.concat(subnetIds);
       }
+      // remove duplicate elements from the array
+      vpc.subnetIds = [...new Set(vpc.subnetIds)];
     }
     if (vpcDiscovery.securityGroups) {
       vpc.securityGroupIds = [];
@@ -75,6 +77,8 @@ export class LambdaFunction {
         const groupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, group.names, group.tagKey, group.tagValues);
         vpc.securityGroupIds = vpc.securityGroupIds.concat(groupIds);
       }
+      // remove duplicate elements from the array
+      vpc.securityGroupIds = [...new Set(vpc.securityGroupIds)];
     }
     return vpc;
   }

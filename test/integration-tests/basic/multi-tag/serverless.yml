@@ -1,0 +1,55 @@
+# multi-tag example
+service: test-sls-multi-tag-${opt:RANDOM_STRING}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  endpointType: regional
+  stage: test
+
+functions:
+  helloWorld:
+    handler: handler.helloWorld
+    # inherit basic config
+  helloWorld1:
+    handler: handler.helloWorld
+    # skip vpc configuration
+    vpcDiscovery: false
+  helloWorld2:
+    handler: handler.helloWorld
+    # subnet ids and security group ids
+    vpcDiscovery:
+      vpcName: ${env:TEST_VPC_NAME}
+      subnets:
+        - tagKey: Name
+          tagValues:
+            - ${env:TEST_VPC_NAME}_maintenance_us-west-2a
+            - ${env:TEST_VPC_NAME}_maintenance_us-west-2b
+            - ${env:TEST_VPC_NAME}_maintenance_us-west-2c
+      securityGroups:
+        - tagKey: Name
+          tagValues:
+            - ${env:TEST_VPC_NAME}_intranet
+            - ${env:TEST_VPC_NAME}_maintenance
+
+
+plugins:
+  - serverless-vpc-discovery
+
+custom:
+  vpcDiscovery:
+    vpcName: ${env:TEST_VPC_NAME}
+    subnets:
+      - tagKey: Name
+        tagValues:
+          - ${env:TEST_VPC_NAME}_intranet_us-west-2a
+          - ${env:TEST_VPC_NAME}_intranet_us-west-2b
+          - ${env:TEST_VPC_NAME}_intranet_us-west-2c
+    securityGroups:
+      - names:
+          - ${env:TEST_VPC_NAME}_intranet
+
+package:
+  exclude:
+    - node_modules/**

@@ -12,15 +12,15 @@ Basically we use this config:
 ```
 vpcDiscovery:
     vpcName: '${opt:env}'
-    subnets: # optional if `securityGroups` are specified
-        tagKey: <tag_name>
+    subnets: # optional if `securityGroups` option is specified
+      - tagKey: <tag_name>
         tagValues:
-            - '${opt:env}_<name of subnet>'
-    securityGroups: # optional if `subnetNames` are specified
-        tagKey: <tag_name> # optional if `names` are specified
-        tagValues: # optional if `names` are specified
-            - '${opt:env}_<name of subnet>'
-        names: # optional if `tagKey` and `tagValues` are specified
+          - '${opt:env}_<name of subnet>'
+    securityGroups: # optional if `subnets` option is specified
+      - tagKey: <tag_name> # optional if `names` option is specified
+        tagValues: # optional if `names` option is specified
+          - '${opt:env}_<name of subnet>'
+      - names: # optional if `tagKey` and `tagValues` are specified
         - '${opt:env}_<name of security group>'
 ```
 To generate this config:
@@ -73,10 +73,24 @@ plugins:
 custom:
   vpcDiscovery:
     vpcName: '${opt:env}'
-    subnetNames: # optional if securityGroupNames are specified
-      - '${opt:env}_<name of subnet>'
-    securityGroupNames: # optional if subnetNames are specified
-      - '${opt:env}_<name of security group>'
+    subnets: # optional if `securityGroups` option is specified
+      - tagKey: <tag_name>
+        tagValues:
+          - '${opt:env}_<name of subnet>'
+      - tagKey: <tag_name2>
+        tagValues:
+          - '${opt:env}_<name2 of subnet>'
+      ...
+    securityGroups: # optional if `subnets` option is specified
+      - tagKey: <tag_name> # optional if `names` option is specified
+        tagValues: # optional if `names` option is specified
+          - '${opt:env}_<name of subnet>'
+      - tagKey: <tag_name2> # optional if `names` option is specified
+        tagValues: # optional if `names` option is specified
+          - '${opt:env}_<name2 of subnet>'
+      - names: # optional if `tagKey` and `tagValues` are specified
+        - '${opt:env}_<name of security group>'
+      ...
 
 # (Optional) set a config for the specific function
 functions:
@@ -92,17 +106,28 @@ functions:
     # inherit `custom.vpcDiscovery` and override security group names
     vpcDiscovery:
       vpcName: '${opt:env}'
-      securityGroupNames:
-        - '${opt:env}_<name of security group>'
+      securityGroups:
+        - tagKey: <tag_name>
+          tagValues:
+            - '${opt:env}_<name of security group>'
+        ...
   example4:
     handler: handler.example
     # override basic subnet names and security group names
     vpcDiscovery:
       vpcName: '${opt:env}'
-      subnetNames: # optional if securityGroupNames are specified
-        - '${opt:env}_<name of subnet>'
-      securityGroupNames:  # optional if subnetNames are specified
-        - '${opt:env}_<name of security group>'        
+      subnets: # optional if `subnets` option is specified
+        - tagKey: <tag_name>
+          tagValues:
+            - '${opt:env}_<name of subnet>'
+        ...
+      securityGroups: # optional if `subnets` option is specified
+        - tagKey: <tag_name> # optional if `names` option is specified
+          tagValues: # optional if `names` option is specified
+            - '${opt:env}_<name of subnet>'
+        - names: # optional if `tagKey` and `tagValues` are specified
+          - '${opt:env}_<name of security group>'
+        ...
 ```
 > NOTE: The naming pattern we used here was building off the vpc name for the subnet and security group by extending it with the the subnet and security group name. This makes it easier to switch to different vpcs by changing the environment variable in the command line.
 
