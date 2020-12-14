@@ -110,7 +110,9 @@ class VPCPlugin {
         // eslint-disable-next-line
         const func = service.functions[funcName];
         // update config to support
-        this.updateVPCDiscoveryConfig(func.vpcDiscovery);
+        if (func.vpcDiscovery) {
+          this.updateVPCDiscoveryConfig(func.vpcDiscovery);
+        }
         const funcVPC = await this.lambdaFunction.getFuncVPC(funcName, func.vpcDiscovery);
 
         if (!funcVPC) {
