@@ -110,7 +110,9 @@ class VPCPlugin {
       this.updateVPCDiscoveryConfigCompatibility(func.vpcDiscovery);
       const funcVPC = await this.lambdaFunction.getFuncVPC(funcName, func.vpcDiscovery);
 
-      if (!funcVPC) continue;
+      if (!funcVPC) {
+        continue;
+      }
 
       // init vpc empty config in case not exists
       func.vpc = func.vpc || {};
