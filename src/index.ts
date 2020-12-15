@@ -40,7 +40,7 @@ class VPCPlugin {
 
     if (vpcDiscovery) {
       // support backward compatibility
-      this.updateVPCDiscoveryConfig(vpcDiscovery);
+      this.updateVPCDiscoveryConfigCompatibility(vpcDiscovery);
 
       // validate config
       try {
@@ -58,9 +58,9 @@ class VPCPlugin {
   /**
    * This function update VPC Discovery config to support version 2.x config structure and show warning errors
    */
-  public updateVPCDiscoveryConfig (vpcDiscovery: VPCDiscovery | FuncVPCDiscovery): void {
+  public updateVPCDiscoveryConfigCompatibility (vpcDiscovery: VPCDiscovery | FuncVPCDiscovery): void {
     // support backward compatibility
-    if (vpcDiscovery.subnetNames || vpcDiscovery.securityGroupNames) {
+    if (vpcDiscovery && (vpcDiscovery.subnetNames || vpcDiscovery.securityGroupNames)) {
       // convert `vpcDiscovery.subnetNames` or `vpcDiscovery.securityGroupNames` to the new config structure
       if (!vpcDiscovery.subnets && !vpcDiscovery.securityGroups) {
         if (vpcDiscovery.subnetNames) {
@@ -101,50 +101,42 @@ class VPCPlugin {
   public async updateFunctionsVpcConfig (): Promise<object> {
     Globals.logInfo("Updating VPC config...");
     const service = this.serverless.service;
+    const functions = service.functions || {};
 
     // Sets the serverless's vpc config
-    if (service.functions) {
-      // loop through the functions and update VPC config
-      // eslint-disable-next-line guard-for-in
-      for (const funcName in service.functions) {
-        // eslint-disable-next-line
-        const func = service.functions[funcName];
-        // update config to support
-        if (func.vpcDiscovery) {
-          this.updateVPCDiscoveryConfig(func.vpcDiscovery);
-        }
-        const funcVPC = await this.lambdaFunction.getFuncVPC(funcName, func.vpcDiscovery);
+    // loop through the functions and update VPC config
+    for (const funcName of Object.keys(functions)) {
+      const func = service.functions[funcName];
+      this.updateVPCDiscoveryConfigCompatibility(func.vpcDiscovery);
+      const funcVPC = await this.lambdaFunction.getFuncVPC(funcName, func.vpcDiscovery);
 
-        if (!funcVPC) {
-          continue;
-        }
+      if (!funcVPC) continue;
 
-        // init vpc empty config in case not exists
-        func.vpc = func.vpc || {};
-        // log warning in case vpc.subnetIds and vpcDiscovery.subnetNames are specified.
-        if (func.vpc.subnetIds && func.vpcDiscovery && func.vpcDiscovery.subnets) {
-          Globals.logWarning(
-            `vpc.subnetIds' are specified for the function '${funcName}' 
-            and overrides 'vpcDiscovery.subnets' discovery config.`
-          );
-        }
-        // log warning in case vpc.securityGroupIds and vpcDiscovery.securityGroupNames are specified.
-        if (func.vpc.securityGroupIds && func.vpcDiscovery && func.vpcDiscovery.securityGroups) {
-          Globals.logWarning(
-            `vpc.securityGroupIds' are specified for the function '${funcName}' 
-            and overrides 'vpcDiscovery.securityGroups' discovery config.`
-          );
-        }
+      // init vpc empty config in case not exists
+      func.vpc = func.vpc || {};
+      // log warning in case vpc.subnetIds and vpcDiscovery.subnetNames are specified.
+      if (func.vpc.subnetIds && func.vpcDiscovery && func.vpcDiscovery.subnets) {
+        Globals.logWarning(
+          `vpc.subnetIds' are specified for the function '${funcName}' ` +
+          "and overrides 'vpcDiscovery.subnets' discovery config."
+        );
+      }
+      // log warning in case vpc.securityGroupIds and vpcDiscovery.securityGroupNames are specified.
+      if (func.vpc.securityGroupIds && func.vpcDiscovery && func.vpcDiscovery.securityGroups) {
+        Globals.logWarning(
+          `vpc.securityGroupIds' are specified for the function '${funcName}' ` +
+          "and overrides 'vpcDiscovery.securityGroups' discovery config."
+        );
+      }
 
-        // set vpc.subnetIds if it does not exists
-        if (!func.vpc.subnetIds && funcVPC.subnetIds) {
-          func.vpc.subnetIds = funcVPC.subnetIds;
-        }
+      // set vpc.subnetIds if it does not exists
+      if (!func.vpc.subnetIds && funcVPC.subnetIds) {
+        func.vpc.subnetIds = funcVPC.subnetIds;
+      }
 
-        // set vpc.securityGroupIds if it does not exists
-        if (!func.vpc.securityGroupIds && funcVPC.securityGroupIds) {
-          func.vpc.securityGroupIds = funcVPC.securityGroupIds;
-        }
+      // set vpc.securityGroupIds if it does not exists
+      if (!func.vpc.securityGroupIds && funcVPC.securityGroupIds) {
+        func.vpc.securityGroupIds = funcVPC.securityGroupIds;
       }
     }
 
