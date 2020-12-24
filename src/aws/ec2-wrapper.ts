@@ -1,6 +1,5 @@
 import { EC2 } from "aws-sdk";
-import { getAWSPagedResults, wildcardMatches } from "../utils";
-import Globals from "../globals";
+import { getAWSPagedResults, getValueFromTags, wildcardMatches } from "../utils";
 
 export class EC2Wrapper {
   public ec2: EC2
@@ -63,21 +62,16 @@ export class EC2Wrapper {
       params
     );
 
-    if (subnets.length === 0) {
-      throw new Error(`Subnets with vpc id '${vpcId}', tag key '${tagKey}' and tag values '${tagValues}' do not exist`);
-    }
-
     const missingSubnetValues = tagValues.filter((tagValue) => {
       // collect subnets by name
       const subnetsByName = subnets.filter((subnet) => {
-        const nameTag = subnet.Tags.find((tag) => tag.Key === tagKey);
-        return wildcardMatches(tagValue, nameTag.Value);
+        return wildcardMatches(tagValue, getValueFromTags(subnet.Tags, tagKey));
       });
       return subnetsByName.length === 0;
     });
 
-    if (missingSubnetValues.length) {
-      Globals.logError(
+    if (!subnets.length || missingSubnetValues.length) {
+      throw new Error(
         `Subnets with vpc id '${vpcId}', tag key '${tagKey}' and tag values '${missingSubnetValues}' do not exist. ` +
         "Please check the `tagKey` and `tagValues` are correct or remove it."
       );
@@ -130,7 +124,7 @@ export class EC2Wrapper {
       });
 
       if (missingGroupsNames.length) {
-        Globals.logError(
+        throw new Error(
           `Security groups do not exist for the names: ${missingGroupsNames}. ` +
           "Please check the 'names' are correct or remove it."
         );
@@ -141,14 +135,14 @@ export class EC2Wrapper {
       tagValues = tagValues || [];
       const missingGroupsTagNames = tagValues.filter((tagValue) => {
         // collect subnets by name
-        const subnetsByName = securityGroups.filter((securityGroup) => {
-          const nameTag = securityGroup.Tags.find((tag) => tag.Key === tagKey);
-          return nameTag.Value === tagValue;
+        const groupsByName = securityGroups.filter((securityGroup) => {
+          const groupTagValue = getValueFromTags(securityGroup.Tags, tagKey);
+          return groupTagValue === tagValue;
         });
-        return subnetsByName.length === 0;
+        return groupsByName.length === 0;
       });
       if (missingGroupsTagNames.length) {
-        Globals.logError(
+        throw new Error(
           `Security groups do not exist for the tag '${tagKey}' and tag values: '${missingGroupsTagNames}'. ` +
           "Please check the 'tagKey' and 'tagValues' are correct or remove it."
         );

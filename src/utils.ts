@@ -92,10 +92,19 @@ function wildcardMatches (inputArn: string, actualArn: string) {
   return inputArnRegex.test(actualArn);
 }
 
+function getValueFromTags (tags, tagKey) {
+  const tagItem = tags.find((tag) => tag.Key === tagKey);
+  if (tagItem) {
+    return tagItem.Value;
+  }
+  return null;
+}
+
 export {
   sleep,
   getAWSPagedResults,
   throttledCall,
   isObjectEmpty,
-  wildcardMatches
+  wildcardMatches,
+  getValueFromTags
 };
