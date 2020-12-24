@@ -50,6 +50,7 @@ function readBasicVPCConfig (configPath: string, vpcName: string) {
 function compileVPCConfig (vpcDiscovery: VPCDiscovery, vpcName) {
   const regExp = /\${env:TEST_VPC_NAME}/gi;
   vpcDiscovery.vpcName = vpcDiscovery.vpcName.replace(regExp, vpcName);
+  // TODO: deprecated in 3.0.0
   if (vpcDiscovery.subnetNames) {
     vpcDiscovery.subnetNames = vpcDiscovery.subnetNames.map((item) => {
       return item.replace(regExp, vpcName);
@@ -58,6 +59,36 @@ function compileVPCConfig (vpcDiscovery: VPCDiscovery, vpcName) {
   if (vpcDiscovery.securityGroupNames) {
     vpcDiscovery.securityGroupNames = vpcDiscovery.securityGroupNames.map((item) => {
       return item.replace(regExp, vpcName);
+    });
+  }
+  // end of the deprecation
+
+  if (vpcDiscovery.subnets) {
+    vpcDiscovery.subnets = vpcDiscovery.subnets.map((item) => {
+      item.tagKey.replace(regExp, vpcName);
+      item.tagValues = item.tagValues.map((value) => {
+        return value.replace(regExp, vpcName);
+      });
+      return item;
+    });
+  }
+
+  if (vpcDiscovery.securityGroups) {
+    vpcDiscovery.securityGroups = vpcDiscovery.securityGroups.map((item) => {
+      if (item.names) {
+        item.names = item.names.map((name) => {
+          return name.replace(regExp, vpcName);
+        });
+      }
+      if (item.tagKey) {
+        item.tagKey.replace(regExp, vpcName);
+      }
+      if (item.tagValues) {
+        item.tagValues = item.tagValues.map((value) => {
+          return value.replace(regExp, vpcName);
+        });
+      }
+      return item;
     });
   }
   return vpcDiscovery;

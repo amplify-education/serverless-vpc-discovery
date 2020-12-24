@@ -9,7 +9,7 @@ import shell from "shelljs";
  */
 async function exec (cmd) {
   console.debug(`\tRunning command: ${cmd}`);
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     shell.exec(cmd, { silent: false }, (err, stdout, stderr) => {
       if (err || stderr) {
         // eslint-disable-next-line prefer-promise-reject-errors

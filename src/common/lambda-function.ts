@@ -2,6 +2,7 @@ import { EC2Wrapper } from "../aws/ec2-wrapper";
 import { VPCDiscovery, FuncVPCDiscovery, VPC } from "../types";
 import Globals from "../globals";
 import { isObjectEmpty } from "../utils";
+import { validateVPCDiscoveryConfig } from "../validation";
 
 export class LambdaFunction {
   private ec2Wrapper: EC2Wrapper;
@@ -22,36 +23,63 @@ export class LambdaFunction {
       Globals.logInfo(`Skipping VPC config for the function '${funcName}'`);
       return null;
     }
+
     // inherit the `custom.vpcDiscovery`
     const vpcDiscovery = Object.assign({}, this.basicVPCDiscovery, funcVPCDiscovery);
+
     // return null in case vpcDiscovery not setup
     if (isObjectEmpty(vpcDiscovery)) {
       return null;
     }
-    // validate vpcDiscovery config
-    const isConfigValid = this.validateFuncVPCDiscoveryConfig(vpcDiscovery);
-    if (!isConfigValid) {
-      // skip vpc setup for not valid config
-      Globals.logWarning(
-        `The function '${funcName}' is not configured correctly. VPC not configured.` +
+
+    // validate func vpcDiscovery config
+    try {
+      validateVPCDiscoveryConfig(vpcDiscovery);
+    } catch (e) {
+      throw new Error(
+        `Function '${funcName}' is not configured correctly: ${e} VPC not configured. ` +
         "Please see the README for the proper setup."
       );
-      return null;
     }
 
-    return await this.ec2Wrapper.getVpcConfig(vpcDiscovery);
+    try {
+      Globals.logInfo(`Getting VPC config for the function: '${funcName}'\n`);
+      return await this.getVpcConfig(vpcDiscovery);
+    } catch (e) {
+      Globals.logError(`Function '${funcName}' VPC not configured based on the error: ${e}`);
+    }
+    return null;
   }
 
   /**
-   * Validate function vpc discovery config
-   * @returns {boolean}
+   * Gets the desired vpc with the designated subnets and security groups
+   * that were set in serverless config file
+   * @returns {Promise<object>}
    */
-  public validateFuncVPCDiscoveryConfig (funcVPCDiscovery: FuncVPCDiscovery): boolean {
-    if (funcVPCDiscovery) {
-      // check is vpcDiscovery correct
-      const isSubnetsOrGroups = funcVPCDiscovery.subnetNames != null || funcVPCDiscovery.securityGroupNames != null;
-      return funcVPCDiscovery.vpcName != null && isSubnetsOrGroups;
+  private async getVpcConfig (vpcDiscovery: VPCDiscovery): Promise<VPC> {
+    const vpc: VPC = {};
+    const vpcId = await this.ec2Wrapper.getVpcId(vpcDiscovery.vpcName);
+
+    Globals.logInfo(`Found VPC with id '${vpcId}'`);
+
+    if (vpcDiscovery.subnets) {
+      vpc.subnetIds = [];
+      for (const subnet of vpcDiscovery.subnets) {
+        const subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, subnet.tagKey, subnet.tagValues);
+        vpc.subnetIds = vpc.subnetIds.concat(subnetIds);
+      }
+      // remove duplicate elements from the array
+      vpc.subnetIds = [...new Set(vpc.subnetIds)];
     }
-    return true;
+    if (vpcDiscovery.securityGroups) {
+      vpc.securityGroupIds = [];
+      for (const group of vpcDiscovery.securityGroups) {
+        const groupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, group.names, group.tagKey, group.tagValues);
+        vpc.securityGroupIds = vpc.securityGroupIds.concat(groupIds);
+      }
+      // remove duplicate elements from the array
+      vpc.securityGroupIds = [...new Set(vpc.securityGroupIds)];
+    }
+    return vpc;
   }
 }

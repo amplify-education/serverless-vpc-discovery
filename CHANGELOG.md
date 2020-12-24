@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2020-12-24
+### Added
+- Support for getting subnets and security groups by any tag key/value  
+### Changed
+- ***Important!*** The `subnetNames` and `securityGroupNames` options have been deprecated and will be removed in the next major release. The new options are `subnets` and `securityGroups`.
+- ***Important!*** Drop `vpc` option support. The new option is `vpcDiscovery`.
+
 ## [2.3.0] - 2020-12-11
 ### Changed
 - Allow usage of wildcards in subnet and security group names. Thank you @RLRabinowitz ([#41](https://github.com/amplify-education/serverless-vpc-discovery/pull/41))
