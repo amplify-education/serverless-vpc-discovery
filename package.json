@@ -69,7 +69,7 @@
     "mocha-param": "^2.0.1",
     "nyc": "^15.1.0",
     "randomstring": "^1.1.5",
-    "serverless": "^2.15.0",
+    "serverless": "^2.32.0",
     "shelljs": "^0.8.4",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.3"
