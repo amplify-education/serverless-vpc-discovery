@@ -5,7 +5,7 @@ import { LambdaFunction } from "./common/lambda-function";
 import Globals from "./globals";
 import { validateVPCDiscoveryConfig } from "./validation";
 
-export default class VPCPlugin {
+class VPCPlugin {
   private serverless: ServerlessInstance;
   public hooks: object;
   public awsCredentials: any;
@@ -145,3 +145,5 @@ export default class VPCPlugin {
     return service.functions;
   }
 }
+
+export = VPCPlugin;
