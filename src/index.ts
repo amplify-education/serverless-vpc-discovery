@@ -19,6 +19,73 @@ class VPCPlugin {
     this.hooks = {
       "before:package:initialize": this.hookWrapper.bind(this, this.updateFunctionsVpcConfig)
     };
+
+    const baseProperties = {
+      type: "object",
+      properties: {
+        vpcName: { type: "string" },
+        subnets: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              names: {
+                type: "array",
+                items: { type: "string" }
+              },
+              tagKey: { type: "string" },
+              tagValues: {
+                type: "array",
+                items: { type: "string" }
+              }
+            }
+          }
+        },
+        securityGroups: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              tagKey: { type: "string" },
+              tagValues: {
+                type: "array",
+                items: { type: "string" }
+              }
+            }
+          }
+        },
+        // DEPRECATED
+        subnetNames: {
+          type: "array",
+          items: { type: "string" }
+        },
+        securityGroupNames: {
+          type: "array",
+          items: { type: "string" }
+        }
+      }
+    };
+
+    const functionProperties = {
+      properties: {
+        vpcDiscovery: {
+          anyOf: [
+            { type: "boolean" },
+            baseProperties
+          ]
+        }
+      }
+    };
+
+    const customProperties = {
+      properties: {
+        vpcDiscovery: baseProperties
+      }
+    };
+
+    serverless.configSchemaHandler.defineFunctionProperties("aws", functionProperties);
+
+    serverless.configSchemaHandler.defineCustomProperties(customProperties);
   }
 
   /**
