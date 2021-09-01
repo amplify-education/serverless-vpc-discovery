@@ -63,6 +63,10 @@ const constructPlugin = (vpcConfig) => {
         getCredentials: () => new AWS.Credentials(testCreds),
         getRegion: () => "us-moon-1"
       }
+    },
+    configSchemaHandler: {
+      defineCustomProperties: (props: any) => {},
+      defineFunctionProperties: (provider: string, props: any) => {}
     }
   };
   return new VPCPlugin(serverless);

@@ -52,6 +52,10 @@ export interface ServerlessInstance {
       getRegion (),
     },
   };
+  configSchemaHandler: {
+    defineCustomProperties (props: any),
+    defineFunctionProperties (provider: string, props: any),
+  };
   cli: {
     log (str: string, entity?: string),
     consoleLog (str: any),
