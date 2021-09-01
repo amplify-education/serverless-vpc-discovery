@@ -4,7 +4,7 @@ import fs = require("fs")
 
 function readYml (path: string) {
   try {
-    return yaml.safeLoad(fs.readFileSync(path, "utf8"));
+    return yaml.load(fs.readFileSync(path, "utf8"));
   } catch (e) {
     console.log(e);
   }

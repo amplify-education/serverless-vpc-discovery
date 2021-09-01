@@ -4,8 +4,9 @@ import { FuncVPCDiscovery, ServerlessInstance, VPCDiscovery } from "./types";
 import { LambdaFunction } from "./common/lambda-function";
 import Globals from "./globals";
 import { validateVPCDiscoveryConfig } from "./validation";
+import { customProperties, functionProperties } from "./schema";
 
-export default class VPCPlugin {
+class VPCPlugin {
   private serverless: ServerlessInstance;
   public hooks: object;
   public awsCredentials: any;
@@ -19,6 +20,9 @@ export default class VPCPlugin {
     this.hooks = {
       "before:package:initialize": this.hookWrapper.bind(this, this.updateFunctionsVpcConfig)
     };
+
+    serverless.configSchemaHandler.defineCustomProperties(customProperties);
+    serverless.configSchemaHandler.defineFunctionProperties("aws", functionProperties);
   }
 
   /**
@@ -145,3 +149,5 @@ export default class VPCPlugin {
     return service.functions;
   }
 }
+
+export = VPCPlugin;
