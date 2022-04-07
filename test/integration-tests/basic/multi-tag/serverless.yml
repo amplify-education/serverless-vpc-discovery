@@ -1,5 +1,4 @@
 # multi-tag example
-# service: test-sls-multi-tag-${param:RANDOM_STRING}
 service: test-sls-multi-tag-${env:RANDOM_STRING}
 
 provider:
