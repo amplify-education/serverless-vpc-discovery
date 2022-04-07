@@ -10,7 +10,7 @@ import itParam = require("mocha-param")
 import path = require("path")
 
 const CONFIGS_FOLDER = "basic";
-const TIMEOUT_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+const TIMEOUT_MINUTES = 20 * 60 * 1000; // 20 minutes in milliseconds
 const RANDOM_STRING = getRandomString();
 const TEMP_DIR = `~/tmp/vpc-discovery-test-${RANDOM_STRING}`;
 

@@ -1,5 +1,5 @@
 # only functions setup example
-service: test-sls-only-functions-${opt:RANDOM_STRING}
+service: test-sls-only-functions-${env:RANDOM_STRING}
 
 provider:
   name: aws
@@ -28,5 +28,5 @@ plugins:
   - serverless-vpc-discovery
 
 package:
-  exclude:
-    - node_modules/**
+  patterns:
+    - "!node_modules/**"

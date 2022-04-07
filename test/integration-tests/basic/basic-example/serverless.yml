@@ -1,5 +1,5 @@
 # basic example
-service: test-sls-vpc-dicovery-${opt:RANDOM_STRING}
+service: test-sls-vpc-dicovery-${env:RANDOM_STRING}
 
 provider:
   name: aws
@@ -38,5 +38,5 @@ custom:
       - ${env:TEST_VPC_NAME}_intranet
 
 package:
-  exclude:
-    - node_modules/**
+  patterns:
+    - "!node_modules/**"

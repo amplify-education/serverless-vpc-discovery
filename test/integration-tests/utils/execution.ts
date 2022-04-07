@@ -4,18 +4,15 @@ import shell from "shelljs";
 
 /**
  * Executes given shell command.
- * @param cmd shell command to execute
- * @returns {Promise<void>} Resolves if successfully executed, else rejects
  */
-async function exec (cmd) {
+async function exec(cmd: string): Promise<string> {
   console.debug(`\tRunning command: ${cmd}`);
-  return new Promise<void>((resolve, reject) => {
-    shell.exec(cmd, { silent: false }, (err, stdout, stderr) => {
-      if (err || stderr) {
-        // eslint-disable-next-line prefer-promise-reject-errors
-        return reject();
+  return new Promise((resolve, reject) => {
+    shell.exec(cmd, { silent: false }, (errorCode, stdout, stderr) => {
+      if (errorCode === 0) {
+        return resolve(stdout);
       }
-      return resolve();
+      return reject(stderr);
     });
   });
 }
@@ -43,7 +40,8 @@ async function createTempDir (tempDir, folderName) {
  * @returns {Promise<void>}
  */
 function slsDeploy (tempDir, identifier) {
-  return exec(`cd ${tempDir} && $(npm bin)/serverless deploy --RANDOM_STRING ${identifier}`);
+  process.env.RANDOM_STRING = identifier;
+  return exec(`cd ${tempDir} && $(npm bin)/serverless deploy`);
 }
 
 /**
@@ -53,7 +51,8 @@ function slsDeploy (tempDir, identifier) {
  * @returns {Promise<void>}
  */
 function slsRemove (tempDir, identifier) {
-  return exec(`cd ${tempDir} && $(npm bin)/serverless remove --RANDOM_STRING ${identifier}`);
+  process.env.RANDOM_STRING = identifier;
+  return exec(`cd ${tempDir} && $(npm bin)/serverless remove`);
 }
 
 export {
