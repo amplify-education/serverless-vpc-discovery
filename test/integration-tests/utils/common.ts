@@ -16,7 +16,7 @@ function readYml (path: string) {
  */
 function readLambdaFunctions (configPath: string, vpcName: string, identifier: string) {
   const config = readYml(configPath);
-  const serviceName = config.service.replace(/\${opt:RANDOM_STRING}/gi, identifier);
+  const serviceName = config.service.replace(/\${env:RANDOM_STRING}/gi, identifier);
   const stage = config.provider.stage;
   const funcConf = {};
   for (const fName in config.functions) {

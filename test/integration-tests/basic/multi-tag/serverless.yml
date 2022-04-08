@@ -1,5 +1,5 @@
 # multi-tag example
-service: test-sls-multi-tag-${opt:RANDOM_STRING}
+service: test-sls-multi-tag-${env:RANDOM_STRING}
 
 provider:
   name: aws
@@ -51,5 +51,5 @@ custom:
           - ${env:TEST_VPC_NAME}_intranet
 
 package:
-  exclude:
-    - node_modules/**
+  patterns:
+    - "!node_modules/**"
