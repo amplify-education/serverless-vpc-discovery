@@ -5,7 +5,7 @@ import shell from "shelljs";
 /**
  * Executes given shell command.
  */
-async function exec(cmd: string): Promise<string> {
+async function exec (cmd: string): Promise<string> {
   console.debug(`\tRunning command: ${cmd}`);
   return new Promise((resolve, reject) => {
     shell.exec(cmd, { silent: false }, (errorCode, stdout, stderr) => {
