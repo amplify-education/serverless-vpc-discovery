@@ -20,7 +20,7 @@ export class LambdaFunction {
   public async getFuncVPC (funcName: string, funcVPCDiscovery: FuncVPCDiscovery): Promise<VPC> {
     if (typeof funcVPCDiscovery === "boolean" && !funcVPCDiscovery) {
       // skip vpc setup for `vpcDiscovery=false` option
-      Globals.logInfo(`Skipping VPC config for the function '${funcName}'`);
+      Globals.log.info(`Skipping VPC config for the function '${funcName}'`);
       return null;
     }
 
@@ -43,10 +43,10 @@ export class LambdaFunction {
     }
 
     try {
-      Globals.logInfo(`Getting VPC config for the function: '${funcName}'\n`);
+      Globals.log.info(`Getting VPC config for the function: '${funcName}'\n`);
       return await this.getVpcConfig(vpcDiscovery);
     } catch (e) {
-      Globals.logError(`Function '${funcName}' VPC not configured based on the error: ${e}`);
+      Globals.log.error(`Function '${funcName}' VPC not configured based on the error: ${e}`);
     }
     return null;
   }
@@ -60,7 +60,7 @@ export class LambdaFunction {
     const vpc: VPC = {};
     const vpcId = await this.ec2Wrapper.getVpcId(vpcDiscovery.vpcName);
 
-    Globals.logInfo(`Found VPC with id '${vpcId}'`);
+    Globals.log.info(`Found VPC with id '${vpcId}'`);
 
     if (vpcDiscovery.subnets) {
       vpc.subnetIds = [];

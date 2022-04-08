@@ -12,9 +12,11 @@ class VPCPlugin {
   public awsCredentials: any;
   public lambdaFunction: LambdaFunction;
 
-  constructor (serverless) {
+  constructor (serverless, cliOptions, { log, progress }) {
     this.serverless = serverless;
     Globals.serverless = serverless;
+    Globals.log = log;
+    Globals.progress = progress;
 
     /* hooks are the actual code that will run when called */
     this.hooks = {
@@ -73,13 +75,13 @@ class VPCPlugin {
         if (vpcDiscovery.securityGroupNames) {
           vpcDiscovery.securityGroups = [{ names: vpcDiscovery.securityGroupNames }];
         }
-        Globals.logWarning(
+        Globals.log.warning(
           "The `vpcDiscovery.subnetNames` and `vpcDiscovery.securityGroupNames` options are deprecated " +
           "and will be removed in the future. Please see README for proper setup."
-        );
+        )
       } else {
         // log warning in case mixed config are specified
-        Globals.logWarning(
+        Globals.log.warning(
           "The `vpcDiscovery.subnetNames` and `vpcDiscovery.securityGroupNames` are deprecated " +
           "and will not be applied. Please remove mentioned option to not see this warning message."
         );
@@ -103,7 +105,7 @@ class VPCPlugin {
    * @returns {Promise<object>}
    */
   public async updateFunctionsVpcConfig (): Promise<object> {
-    Globals.logInfo("Updating VPC config...");
+    let updateVpcProgress = Globals.progress.create({ message: "Updating VPC config" });
     const service = this.serverless.service;
     const functions = service.functions || {};
 
@@ -122,14 +124,14 @@ class VPCPlugin {
       func.vpc = func.vpc || {};
       // log warning in case vpc.subnetIds and vpcDiscovery.subnetNames are specified.
       if (func.vpc.subnetIds && func.vpcDiscovery && func.vpcDiscovery.subnets) {
-        Globals.logWarning(
+        Globals.log.warning(
           `vpc.subnetIds' are specified for the function '${funcName}' ` +
           "and overrides 'vpcDiscovery.subnets' discovery config."
         );
       }
       // log warning in case vpc.securityGroupIds and vpcDiscovery.securityGroupNames are specified.
       if (func.vpc.securityGroupIds && func.vpcDiscovery && func.vpcDiscovery.securityGroups) {
-        Globals.logWarning(
+        Globals.log.warning(
           `vpc.securityGroupIds' are specified for the function '${funcName}' ` +
           "and overrides 'vpcDiscovery.securityGroups' discovery config."
         );
@@ -146,6 +148,7 @@ class VPCPlugin {
       }
     }
 
+    updateVpcProgress.remove();
     return service.functions;
   }
 }

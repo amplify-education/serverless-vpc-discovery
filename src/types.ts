@@ -26,6 +26,31 @@ export interface VPC {
   securityGroupIds?: string[];
 }
 
+export interface ServerlessLog {
+  error (message: string): void;
+  warning (message: string): void;
+  notice (message: string): void;
+  info (message: string): void;
+  debug (message: string): void;
+}
+
+export interface ServerlessProgress {
+  create (options: ServerlessProgressOptions): ServerlessProgressInstance;
+}
+
+export interface ServerlessProgressOptions {
+  message: string;
+}
+
+export interface ServerlessProgressInstance {
+  update (message: string): void;
+  remove (): void;
+}
+
+export interface ServerlessProgress {
+
+}
+
 export interface ServerlessInstance {
   service: {
     service: string
