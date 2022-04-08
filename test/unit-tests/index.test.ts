@@ -37,10 +37,57 @@ const securityGroups = [
 ];
 const vpcId = "vpc-test";
 
+// Helper class for mocking serverless 3 logs.
+class MockServerlessLogs {
+  static debug: string[] = [];
+  static info: string[] = [];
+  static notice: string[] = [];
+  static warning: string[] = [];
+  static error: string[] = [];
+  static progress: string[] = [];
+
+  static getMockLogger(logLevel: string) {
+    return (message: string) => MockServerlessLogs[logLevel].push(message);
+  }
+
+  static getMockLog() {
+    return {
+      debug: MockServerlessLogs.getMockLogger("debug"),
+      info: MockServerlessLogs.getMockLogger("info"),
+      notice: MockServerlessLogs.getMockLogger("notice"),
+      warning: MockServerlessLogs.getMockLogger("warning"),
+      error: MockServerlessLogs.getMockLogger("error"),
+    }
+  }
+
+  static getMockProgress() {
+    return {
+      create: function(options: any) {
+        const {message} = options;
+        const mockLogger = MockServerlessLogs.getMockLogger("progress");
+        mockLogger(message);
+        return {
+          update: mockLogger,
+          remove: () => null,
+        }
+      }
+    };
+  }
+
+  static reset() {
+    MockServerlessLogs.debug = [];
+    MockServerlessLogs.info = [];
+    MockServerlessLogs.notice = [];
+    MockServerlessLogs.warning = [];
+    MockServerlessLogs.error = [];
+    MockServerlessLogs.progress = [];
+  }
+}
+
 // This will create a mock plugin to be used for testing
 const testFuncName = "funcTest";
-let consoleOutput = [];
 const constructPlugin = (vpcConfig) => {
+
   const serverless = {
     service: {
       provider: {
@@ -51,11 +98,6 @@ const constructPlugin = (vpcConfig) => {
       },
       custom: {
         vpcDiscovery: vpcConfig
-      }
-    },
-    cli: {
-      log (str: string) {
-        consoleOutput.push(str);
       }
     },
     providers: {
@@ -69,12 +111,18 @@ const constructPlugin = (vpcConfig) => {
       defineFunctionProperties: (provider: string, props: any) => {}
     }
   };
-  return new VPCPlugin(serverless);
+
+  const mockIO = {
+    log: MockServerlessLogs.getMockLog(),
+    progress: MockServerlessLogs.getMockProgress(),
+  }
+
+  return new VPCPlugin(serverless, null, mockIO);
 };
 
-const initMessage = "Info: Updating VPC config...";
-const initFuncMessage = `Info: Getting VPC config for the function: '${testFuncName}'\n`;
-const foundFuncMessage = `Info: Found VPC with id '${vpcId}'`;
+const initMessage = "Updating VPC config";
+const initFuncMessage = `Getting VPC config for the function: '${testFuncName}'\n`;
+const foundFuncMessage = `Found VPC with id '${vpcId}'`;
 
 describe("serverless-vpc-plugin", () => {
   it("check aws config", () => {
@@ -135,14 +183,14 @@ describe("Given a vpc,", () => {
 
     return await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = `VPC with tag key 'Name' and tag value '${funcVPCDiscovery.vpcName}' does not exist`;
-      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
-      expect(consoleOutput[1]).to.contain(expectedMessage);
+      expect(MockServerlessLogs.info[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(MockServerlessLogs.error[0]).to.contain(expectedMessage);
     });
   });
 
   afterEach(() => {
     AWSMock.restore();
-    consoleOutput = [];
+    MockServerlessLogs.reset();
   });
 });
 
@@ -185,7 +233,7 @@ describe("Given valid inputs for Subnets and Security Groups ", () => {
 
   afterEach(() => {
     AWSMock.restore();
-    consoleOutput = [];
+    MockServerlessLogs.reset();
   });
 });
 
@@ -211,9 +259,9 @@ describe("Given invalid input for ", () => {
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = `Subnets with vpc id '${vpcId}', tag key 'Name' and tag values '${funcVPCDiscovery.subnets[0].tagValues}' do not exist`;
-      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
-      expect(consoleOutput[1]).to.equal(foundFuncMessage);
-      expect(consoleOutput[2]).to.contain(expectedMessage);
+      expect(MockServerlessLogs.info[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(MockServerlessLogs.info[1]).to.equal(foundFuncMessage);
+      expect(MockServerlessLogs.error[0]).to.contain(expectedMessage);
     });
   });
 
@@ -225,15 +273,15 @@ describe("Given invalid input for ", () => {
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = `Security groups with vpc id '${vpcId}', names '${securityGroups[0].names[0]}' do not exist`;
-      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
-      expect(consoleOutput[1]).to.equal(foundFuncMessage);
-      expect(consoleOutput[2]).to.contain(expectedMessage);
+      expect(MockServerlessLogs.info[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(MockServerlessLogs.info[1]).to.equal(foundFuncMessage);
+      expect(MockServerlessLogs.error[0]).to.contain(expectedMessage);
     });
   });
 
   afterEach(() => {
     AWSMock.restore();
-    consoleOutput = [];
+    MockServerlessLogs.reset();
   });
 });
 
@@ -258,9 +306,9 @@ describe("Given input missing in AWS for ", () => {
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = `Subnets with vpc id '${vpcId}', tag key 'Name' and tag values 'missing_subnet' do not exist.`;
-      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
-      expect(consoleOutput[1]).to.equal(foundFuncMessage);
-      expect(consoleOutput[2]).to.contain(expectedMessage);
+      expect(MockServerlessLogs.info[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(MockServerlessLogs.info[1]).to.equal(foundFuncMessage);
+      expect(MockServerlessLogs.error[0]).to.contain(expectedMessage);
     });
   });
 
@@ -273,15 +321,15 @@ describe("Given input missing in AWS for ", () => {
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = "Security groups do not exist for the names";
-      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
-      expect(consoleOutput[1]).to.equal(foundFuncMessage);
-      expect(consoleOutput[2]).to.contain(expectedMessage);
+      expect(MockServerlessLogs.info[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(MockServerlessLogs.info[1]).to.equal(foundFuncMessage);
+      expect(MockServerlessLogs.error[0]).to.contain(expectedMessage);
     });
   });
 
   afterEach(() => {
     AWSMock.restore();
-    consoleOutput = [];
+    MockServerlessLogs.reset();
   });
 });
 
@@ -299,9 +347,9 @@ describe("Catching errors in updateVpcConfig ", () => {
 
     await plugin.updateFunctionsVpcConfig().then(() => {
       const expectedErrorMessage = `VPC with tag key 'Name' and tag value '${vpc}' does not exist.`;
-      expect(consoleOutput[0]).to.equal(initMessage);
-      expect(consoleOutput[1]).to.equal(initFuncMessage);
-      expect(consoleOutput[2]).to.contain(expectedErrorMessage);
+      expect(MockServerlessLogs.progress[0]).to.equal(initMessage);
+      expect(MockServerlessLogs.info[0]).to.equal(initFuncMessage);
+      expect(MockServerlessLogs.error[0]).to.contain(expectedErrorMessage);
     });
   });
 
@@ -322,6 +370,6 @@ describe("Catching errors in updateVpcConfig ", () => {
 
   afterEach(() => {
     AWSMock.restore();
-    consoleOutput = [];
+    MockServerlessLogs.reset();
   });
 });
