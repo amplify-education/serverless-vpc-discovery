@@ -34,10 +34,6 @@ export interface ServerlessLog {
   debug (message: string): void;
 }
 
-export interface ServerlessProgress {
-  create (options: ServerlessProgressOptions): ServerlessProgressInstance;
-}
-
 export interface ServerlessProgressOptions {
   message: string;
 }
@@ -48,7 +44,7 @@ export interface ServerlessProgressInstance {
 }
 
 export interface ServerlessProgress {
-
+  create (options: ServerlessProgressOptions): ServerlessProgressInstance;
 }
 
 export interface ServerlessInstance {

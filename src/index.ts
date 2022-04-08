@@ -78,7 +78,7 @@ class VPCPlugin {
         Globals.log.warning(
           "The `vpcDiscovery.subnetNames` and `vpcDiscovery.securityGroupNames` options are deprecated " +
           "and will be removed in the future. Please see README for proper setup."
-        )
+        );
       } else {
         // log warning in case mixed config are specified
         Globals.log.warning(
@@ -105,7 +105,7 @@ class VPCPlugin {
    * @returns {Promise<object>}
    */
   public async updateFunctionsVpcConfig (): Promise<object> {
-    let updateVpcProgress = Globals.progress.create({ message: "Updating VPC config" });
+    const updateVpcProgress = Globals.progress.create({ message: "Updating VPC config" });
     const service = this.serverless.service;
     const functions = service.functions || {};
 
