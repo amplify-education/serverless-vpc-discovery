@@ -46,11 +46,11 @@ class MockServerlessLogs {
   static error: string[] = [];
   static progress: string[] = [];
 
-  static getMockLogger(logLevel: string) {
+  static getMockLogger (logLevel: string) {
     return (message: string) => MockServerlessLogs[logLevel].push(message);
   }
 
-  static getMockLog() {
+  static getMockLog () {
     return {
       debug: MockServerlessLogs.getMockLogger("debug"),
       info: MockServerlessLogs.getMockLogger("info"),
@@ -60,7 +60,7 @@ class MockServerlessLogs {
     }
   }
 
-  static getMockProgress() {
+  static getMockProgress () {
     return {
       create: function(options: any) {
         const {message} = options;
