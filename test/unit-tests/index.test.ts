@@ -69,12 +69,12 @@ const constructPlugin = (vpcConfig) => {
       defineFunctionProperties: (provider: string, props: any) => {}
     }
   };
-  return new VPCPlugin(serverless);
+  return new VPCPlugin(serverless, null);
 };
 
-const initMessage = "Info: Updating VPC config...";
-const initFuncMessage = `Info: Getting VPC config for the function: '${testFuncName}'\n`;
-const foundFuncMessage = `Info: Found VPC with id '${vpcId}'`;
+const initMessage = "[Info] Updating VPC config...";
+const initFuncMessage = `[Info] Getting VPC config for the function: '${testFuncName}'\n`;
+const foundFuncMessage = `[Info] Found VPC with id '${vpcId}'`;
 
 describe("serverless-vpc-plugin", () => {
   it("check aws config", () => {
