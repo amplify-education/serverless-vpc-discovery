@@ -56,25 +56,25 @@ class MockServerlessLogs {
       info: MockServerlessLogs.getMockLogger("info"),
       notice: MockServerlessLogs.getMockLogger("notice"),
       warning: MockServerlessLogs.getMockLogger("warning"),
-      error: MockServerlessLogs.getMockLogger("error"),
-    }
+      error: MockServerlessLogs.getMockLogger("error")
+    };
   }
 
   static getMockProgress () {
     return {
-      create: function(options: any) {
-        const {message} = options;
+      create: function (options: any) {
+        const { message } = options;
         const mockLogger = MockServerlessLogs.getMockLogger("progress");
         mockLogger(message);
         return {
           update: mockLogger,
-          remove: () => null,
+          remove: () => null
         }
       }
     };
   }
 
-  static reset() {
+  static reset () {
     MockServerlessLogs.debug = [];
     MockServerlessLogs.info = [];
     MockServerlessLogs.notice = [];
@@ -114,7 +114,7 @@ const constructPlugin = (vpcConfig) => {
 
   const mockIO = {
     log: MockServerlessLogs.getMockLog(),
-    progress: MockServerlessLogs.getMockProgress(),
+    progress: MockServerlessLogs.getMockProgress()
   }
 
   return new VPCPlugin(serverless, null, mockIO);
