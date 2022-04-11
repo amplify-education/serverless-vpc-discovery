@@ -12,12 +12,12 @@ class VPCPlugin {
   public awsCredentials: any;
   public lambdaFunction: LambdaFunction;
 
-  constructor(serverless, options, v3Utils?: ServerlessUtils) {
+  constructor (serverless, options, v3Utils?: ServerlessUtils) {
     this.serverless = serverless;
     Globals.serverless = serverless;
 
     if (v3Utils) {
-        Globals.v3Utils = v3Utils;
+      Globals.v3Utils = v3Utils;
     }
 
     /* hooks are the actual code that will run when called */
