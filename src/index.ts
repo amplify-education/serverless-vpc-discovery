@@ -1,6 +1,6 @@
 "use strict";
 
-import { FuncVPCDiscovery, ServerlessInstance, VPCDiscovery } from "./types";
+import { FuncVPCDiscovery, ServerlessInstance, VPCDiscovery, ServerlessUtils } from "./types";
 import { LambdaFunction } from "./common/lambda-function";
 import Globals from "./globals";
 import { validateVPCDiscoveryConfig } from "./validation";
@@ -12,9 +12,13 @@ class VPCPlugin {
   public awsCredentials: any;
   public lambdaFunction: LambdaFunction;
 
-  constructor (serverless) {
+  constructor (serverless, options, v3Utils?: ServerlessUtils) {
     this.serverless = serverless;
     Globals.serverless = serverless;
+
+    if (v3Utils) {
+      Globals.v3Utils = v3Utils;
+    }
 
     /* hooks are the actual code that will run when called */
     this.hooks = {
