@@ -2,7 +2,7 @@ name: Test, Lint, Release and Publish
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   main:
     name: Release and publish Node package
