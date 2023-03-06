@@ -1,0 +1,27 @@
+name: Test and Lint for PRs
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        serverless: [ serverless-current, serverless-legacy ]
+        node-version: [ 14.x, 16.x, 18.x ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@master
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm install
+      - run: '[ "${{ matrix.serverless }}" == "serverless-legacy" ] && npm install serverless@latest-2 || true'
+      - run: npm run lint
+      - run: npm test
