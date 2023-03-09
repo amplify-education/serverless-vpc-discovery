@@ -41,7 +41,7 @@ async function createTempDir (tempDir, folderName) {
  */
 function slsDeploy (tempDir, identifier) {
   process.env.RANDOM_STRING = identifier;
-  return exec(`cd ${tempDir} && $(npm bin)/serverless deploy`);
+  return exec(`cd ${tempDir} && npx serverless deploy`);
 }
 
 /**
@@ -52,7 +52,7 @@ function slsDeploy (tempDir, identifier) {
  */
 function slsRemove (tempDir, identifier) {
   process.env.RANDOM_STRING = identifier;
-  return exec(`cd ${tempDir} && $(npm bin)/serverless remove`);
+  return exec(`cd ${tempDir} && npx serverless remove`);
 }
 
 export {
