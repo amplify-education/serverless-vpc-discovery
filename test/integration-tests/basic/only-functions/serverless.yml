@@ -3,9 +3,9 @@ service: test-sls-only-functions-${env:RANDOM_STRING}
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs16.x
   region: us-west-2
-  endpointType: regional
+  endpointType: REGIONAL
   stage: test
 
 functions:

@@ -1,45 +1,19 @@
-import { ServerlessInstance, ServerlessUtils } from "./types";
+import {ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
+import {ConfiguredRetryStrategy} from "@smithy/util-retry";
 
 export default class Globals {
-  public static pluginName = "Serverless VPC Discovery";
+    public static pluginName = "Serverless VPC Discovery";
 
-  public static serverless: ServerlessInstance;
-  public static v3Utils?: ServerlessUtils;
+    public static serverless: ServerlessInstance;
+    public static options: ServerlessOptions;
+    public static v3Utils?: ServerlessUtils;
 
-  public static cliLog (prefix: string, message: string): void {
-    Globals.serverless.cli.log(`${prefix} ${message}`, Globals.pluginName);
-  }
-
-  /**
-   * Logs error message
-   */
-  public static logError (message: string): void {
-    if (Globals.v3Utils) {
-      Globals.v3Utils.log.error(message);
-    } else {
-      Globals.cliLog("[Error]", message);
+    public static getRetryStrategy(attempts: number = 3, delay: number = 3000, backoff: number = 500) {
+        return new ConfiguredRetryStrategy(
+            attempts, // max attempts.
+            // This example sets the backoff at 500ms plus 3s per attempt.
+            // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_retry.html#aws-sdkutil-retry
+            (attempt: number) => backoff + attempt * delay // backoff function.
+        )
     }
-  }
-
-  /**
-   * Logs info message
-   */
-  public static logInfo (message: string): void {
-    if (Globals.v3Utils) {
-      Globals.v3Utils.log.verbose(message);
-    } else {
-      Globals.cliLog("[Info]", message);
-    }
-  }
-
-  /**
-   * Logs warning message
-   */
-  public static logWarning (message: string): void {
-    if (Globals.v3Utils) {
-      Globals.v3Utils.log.warning(message);
-    } else {
-      Globals.cliLog("[WARNING]", message);
-    }
-  }
 }

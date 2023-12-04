@@ -1,11 +1,11 @@
 import { EC2Wrapper } from "../aws/ec2-wrapper";
 import { VPCDiscovery, FuncVPCDiscovery, VPC } from "../types";
-import Globals from "../globals";
 import { isObjectEmpty } from "../utils";
 import { validateVPCDiscoveryConfig } from "../validation";
+import Logging from "../logging";
 
 export class LambdaFunction {
-  private ec2Wrapper: EC2Wrapper;
+  public ec2Wrapper: EC2Wrapper;
   private readonly basicVPCDiscovery?: VPCDiscovery;
 
   constructor (credentials: any, basicVPCDiscovery: VPCDiscovery) {
@@ -20,7 +20,7 @@ export class LambdaFunction {
   public async getFuncVPC (funcName: string, funcVPCDiscovery: FuncVPCDiscovery): Promise<VPC> {
     if (typeof funcVPCDiscovery === "boolean" && !funcVPCDiscovery) {
       // skip vpc setup for `vpcDiscovery=false` option
-      Globals.logInfo(`Skipping VPC config for the function '${funcName}'`);
+      Logging.logInfo(`Skipping VPC config for the function '${funcName}'`);
       return null;
     }
 
@@ -43,10 +43,10 @@ export class LambdaFunction {
     }
 
     try {
-      Globals.logInfo(`Getting VPC config for the function: '${funcName}'\n`);
+      Logging.logInfo(`Getting VPC config for the function: '${funcName}'\n`);
       return await this.getVpcConfig(vpcDiscovery);
     } catch (e) {
-      Globals.logError(`Function '${funcName}' VPC not configured based on the error: ${e}`);
+      Logging.logError(`Function '${funcName}' VPC not configured based on the error: ${e}`);
     }
     return null;
   }
@@ -60,7 +60,7 @@ export class LambdaFunction {
     const vpc: VPC = {};
     const vpcId = await this.ec2Wrapper.getVpcId(vpcDiscovery.vpcName);
 
-    Globals.logInfo(`Found VPC with id '${vpcId}'`);
+    Logging.logInfo(`Found VPC with id '${vpcId}'`);
 
     if (vpcDiscovery.subnets) {
       vpc.subnetIds = [];

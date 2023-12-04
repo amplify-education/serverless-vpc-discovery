@@ -1,32 +1,34 @@
 import { Service } from "aws-sdk";
+import {MetadataBearer} from "@smithy/types";
+import {Client, Command} from "@smithy/smithy-client";
 
 const RETRYABLE_ERRORS = ["Throttling", "RequestLimitExceeded", "TooManyRequestsException"];
 
 /**
  * Iterate through the pages of a AWS SDK response and collect them into a single array
  *
- * @param service - The AWS service instance to use to make the calls
- * @param funcName - The function name in the service to call
+ * @param client - The AWS service instance to use to make the calls
  * @param resultsKey - The key name in the response that contains the items to return
  * @param nextTokenKey - The request key name to append to the request that has the paging token value
  * @param nextRequestTokenKey - The response key name that has the next paging token value
  * @param params - Parameters to send in the request
  */
-async function getAWSPagedResults (
-  service: Service,
-  funcName: string,
-  resultsKey: string,
-  nextTokenKey: string,
-  nextRequestTokenKey: string,
-  params: object
-): Promise<any[]> {
+async function getAWSPagedResults<ClientOutput, ClientInputCommand extends object, ClientOutputCommand extends MetadataBearer>(
+    client: Client<any, any, any, any>,
+    resultsKey: string,
+    nextTokenKey: string,
+    nextRequestTokenKey: string,
+    params: Command<any, any, any>
+): Promise<ClientOutput[]> {
   let results = [];
-  let response = await throttledCall(service, funcName, params);
-  results = results.concat(response[resultsKey]);
-  // eslint-disable-next-line no-prototype-builtins
-  while (response.hasOwnProperty(nextRequestTokenKey) && response[nextRequestTokenKey]) {
-    params[nextTokenKey] = response[nextRequestTokenKey];
-    response = await service[funcName](params).promise();
+  let response = await client.send(params);
+  results = results.concat(response[resultsKey] || results);
+  while (
+    response.hasOwnProperty(nextRequestTokenKey) &&
+    response[nextRequestTokenKey]
+  ) {
+    params.input[nextTokenKey] = response[nextRequestTokenKey];
+    response = await client.send(params);
     results = results.concat(response[resultsKey]);
   }
   return results;
