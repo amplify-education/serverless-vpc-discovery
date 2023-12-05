@@ -1,6 +1,5 @@
 import { Service } from "aws-sdk";
-import {MetadataBearer} from "@smithy/types";
-import {Client, Command} from "@smithy/smithy-client";
+import { Client, Command } from "@smithy/smithy-client";
 
 const RETRYABLE_ERRORS = ["Throttling", "RequestLimitExceeded", "TooManyRequestsException"];
 
@@ -13,19 +12,18 @@ const RETRYABLE_ERRORS = ["Throttling", "RequestLimitExceeded", "TooManyRequests
  * @param nextRequestTokenKey - The response key name that has the next paging token value
  * @param params - Parameters to send in the request
  */
-async function getAWSPagedResults<ClientOutput, ClientInputCommand extends object, ClientOutputCommand extends MetadataBearer>(
-    client: Client<any, any, any, any>,
-    resultsKey: string,
-    nextTokenKey: string,
-    nextRequestTokenKey: string,
-    params: Command<any, any, any>
+async function getAWSPagedResults<ClientOutput> (
+  client: Client<any, any, any, any>,
+  resultsKey: string,
+  nextTokenKey: string,
+  nextRequestTokenKey: string,
+  params: Command<any, any, any>
 ): Promise<ClientOutput[]> {
   let results = [];
   let response = await client.send(params);
   results = results.concat(response[resultsKey] || results);
   while (
-    response.hasOwnProperty(nextRequestTokenKey) &&
-    response[nextRequestTokenKey]
+    nextRequestTokenKey in response && response[nextRequestTokenKey]
   ) {
     params.input[nextTokenKey] = response[nextRequestTokenKey];
     response = await client.send(params);
@@ -78,8 +76,8 @@ async function sleep (seconds) {
   return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
-function isObjectEmpty (object: Object): boolean {
-  return Object.keys(object).length === 0;
+function isObjectEmpty (value: object): boolean {
+  return Object.keys(value).length === 0;
 }
 
 function replaceAll (input: string, search: string, replace: string) {

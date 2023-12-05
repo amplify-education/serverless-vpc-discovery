@@ -3,7 +3,7 @@
 import chai = require("chai");
 import spies = require("chai-spies");
 import VPCPlugin from "../../src/index";
-import {FuncVPCDiscovery} from "../../src/types";
+import {VPCDiscovery} from "../../src/types";
 import Globals from "../../src/globals";
 import {mockClient} from "aws-sdk-client-mock";
 import {
@@ -125,7 +125,7 @@ describe("Given a vpc,", () => {
         const plugin = constructPlugin({});
         plugin.initResources();
 
-        const funcVPCDiscovery: FuncVPCDiscovery = {
+        const funcVPCDiscovery: VPCDiscovery = {
             vpcName: "test",
             subnets: [{tagKey: "Name", tagValues: ["test_subnet"]}]
         };
@@ -155,7 +155,7 @@ describe("Given valid inputs for Subnets and Security Groups ", () => {
     });
 
     it("without wildcards", async () => {
-        const funcVPCDiscovery: FuncVPCDiscovery = {
+        const funcVPCDiscovery: VPCDiscovery = {
             vpcName: "test",
             subnets: subnets,
             securityGroups: securityGroups
@@ -168,7 +168,7 @@ describe("Given valid inputs for Subnets and Security Groups ", () => {
     });
 
     it("with wildcards", async () => {
-        const funcVPCDiscovery: FuncVPCDiscovery = {
+        const funcVPCDiscovery: VPCDiscovery = {
             vpcName: "test",
             subnets: [{tagKey: "Name", tagValues: ["test_subnet_*"]}],
             securityGroups: [{names: ["test_group_*"]}]
@@ -186,7 +186,7 @@ describe("Given valid inputs for Subnets and Security Groups ", () => {
 });
 
 describe("Given invalid input for ", () => {
-    const funcVPCDiscovery: FuncVPCDiscovery = {
+    const funcVPCDiscovery: VPCDiscovery = {
         vpcName: "test",
         subnets: [{tagKey: "Name", tagValues: ["test_subnet_1"]}],
         securityGroups: [{names: ["test_group_1"]}]
@@ -244,7 +244,7 @@ describe("Given input missing in AWS for ", () => {
     });
 
     it("Subnets", async () => {
-        const funcVPCDiscovery: FuncVPCDiscovery = {
+        const funcVPCDiscovery: VPCDiscovery = {
             vpcName: "test",
             subnets: [{tagKey: "Name", tagValues: ["test_subnet_*", "missing_subnet"]}],
             securityGroups: [{names: ["test_group_*"]}]
@@ -260,7 +260,7 @@ describe("Given input missing in AWS for ", () => {
     });
 
     it("Security Groups", async () => {
-        const funcVPCDiscovery: FuncVPCDiscovery = {
+        const funcVPCDiscovery: VPCDiscovery = {
             vpcName: "test",
             subnets: [{tagKey: "Name", tagValues: ["test_subnet_*"]}],
             securityGroups: [{names: ["test_group_*", "missing_security_group"]}]

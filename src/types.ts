@@ -18,9 +18,6 @@ export interface VPCDiscovery {
     securityGroupNames?: string[];
 }
 
-export interface FuncVPCDiscovery extends VPCDiscovery {
-}
-
 export interface VPC {
     subnetIds?: string[];
     securityGroupIds?: string[];
@@ -40,7 +37,7 @@ export interface ServerlessInstance {
                     subnetIds: {} | undefined,
                     securityGroupIds: {} | undefined,
                 },
-                vpcDiscovery: FuncVPCDiscovery | boolean | undefined
+                vpcDiscovery: VPCDiscovery | boolean | undefined
             }
         },
         custom: {

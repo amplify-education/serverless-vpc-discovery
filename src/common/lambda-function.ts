@@ -1,5 +1,5 @@
 import { EC2Wrapper } from "../aws/ec2-wrapper";
-import { VPCDiscovery, FuncVPCDiscovery, VPC } from "../types";
+import { VPCDiscovery, VPC } from "../types";
 import { isObjectEmpty } from "../utils";
 import { validateVPCDiscoveryConfig } from "../validation";
 import Logging from "../logging";
@@ -17,7 +17,7 @@ export class LambdaFunction {
    * Validate and return VPC config for the given function
    * @returns {Promise<VPC>}
    */
-  public async getFuncVPC (funcName: string, funcVPCDiscovery: FuncVPCDiscovery): Promise<VPC> {
+  public async getFuncVPC (funcName: string, funcVPCDiscovery: VPCDiscovery): Promise<VPC> {
     if (typeof funcVPCDiscovery === "boolean" && !funcVPCDiscovery) {
       // skip vpc setup for `vpcDiscovery=false` option
       Logging.logInfo(`Skipping VPC config for the function '${funcName}'`);

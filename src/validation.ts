@@ -1,4 +1,4 @@
-import { FuncVPCDiscovery, SecurityGroupItem, SubnetItem, VPCDiscovery } from "./types";
+import { SecurityGroupItem, SubnetItem, VPCDiscovery } from "./types";
 
 /**
  * Validate vpc discovery subnets config
@@ -44,7 +44,7 @@ function validateVPCSecurityGroups (securityGroups: SecurityGroupItem[]) {
  * @param vpcDiscovery - the `custom.VPCDiscovery` or func VPCDiscovery
  * @returns
  */
-function validateVPCDiscoveryConfig (vpcDiscovery: VPCDiscovery | FuncVPCDiscovery): void {
+function validateVPCDiscoveryConfig (vpcDiscovery: VPCDiscovery): void {
   // `vpcName` is required
   if (vpcDiscovery.vpcName == null) {
     throw new Error("'vpcDiscovery.vpcName' is not specified.");
