@@ -22,6 +22,5 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
       - run: npm install
-      - run: '[ "${{ matrix.serverless }}" == "serverless-legacy" ] && npm install serverless@latest-2 || true'
       - run: npm run lint
       - run: npm test
