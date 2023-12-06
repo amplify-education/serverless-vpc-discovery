@@ -52,6 +52,7 @@
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.10.3",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
     "aws-sdk-client-mock": "^3.0.0",
     "chai": "^4.3.10",
     "chai-spies": "^1.1.0",
@@ -68,8 +69,8 @@
     "typescript": "5.1.6"
   },
   "dependencies": {
-    "@aws-sdk/client-ec2": "^3.465.0",
-    "@smithy/smithy-client": "^2.1.16",
-    "@smithy/util-retry": "^2.0.7"
+    "@aws-sdk/client-ec2": "^3.467.0",
+    "@smithy/smithy-client": "^2.1.18",
+    "@smithy/util-retry": "^2.0.8"
   }
 }
