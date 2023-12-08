@@ -41,8 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- Added serverless schema validation. Thank you
-  @ROSeaboyer ([53](https://github.com/amplify-education/serverless-vpc-discovery/pull/53))
+- Added serverless schema validation. Thank you @ROSeaboyer ([53](https://github.com/amplify-education/serverless-vpc-discovery/pull/53))
 
 ## [3.1.0] - 2021-09-01
 
