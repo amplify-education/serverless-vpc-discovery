@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/amplify-education/serverless-vpc-discovery.svg?branch=master)](https://travis-ci.org/amplify-education/serverless-vpc-discovery)
 [![npm version](https://badge.fury.io/js/serverless-vpc-discovery.svg)](https://badge.fury.io/js/serverless-vpc-discovery)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/amplify-education/serverless-vpc-discovery/master/LICENSE)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/8135a66ac35648758d22e242fbdbd732)](https://app.codacy.com/gh/amplify-education/serverless-vpc-discovery/dashboard?utm_source=gh\&utm_medium=referral\&utm_content=\&utm_campaign=Badge_grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/8135a66ac35648758d22e242fbdbd732)](https://app.codacy.com/gh/amplify-education/serverless-vpc-discovery/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![npm downloads](https://img.shields.io/npm/dt/serverless-vpc-discovery.svg?style=flat)](https://www.npmjs.com/package/serverless-vpc-discovery)
 
 The vpc discovery plugin takes the given vpc name, subnet tag key/value, and security group tag key/value or names in
