@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/amplify-education/serverless-vpc-discovery.svg?branch=master)](https://travis-ci.org/amplify-education/serverless-vpc-discovery)
 [![npm version](https://badge.fury.io/js/serverless-vpc-discovery.svg)](https://badge.fury.io/js/serverless-vpc-discovery)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/amplify-education/serverless-vpc-discovery/master/LICENSE)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/8135a66ac35648758d22e242fbdbd732)](https://app.codacy.com/gh/amplify-education/serverless-vpc-discovery/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/8135a66ac35648758d22e242fbdbd732)](https://app.codacy.com/gh/amplify-education/serverless-vpc-discovery/dashboard?utm_source=gh\&utm_medium=referral\&utm_content=\&utm_campaign=Badge_grade)
 [![npm downloads](https://img.shields.io/npm/dt/serverless-vpc-discovery.svg?style=flat)](https://www.npmjs.com/package/serverless-vpc-discovery)
 
 The vpc discovery plugin takes the given vpc name, subnet tag key/value, and security group tag key/value or names in
@@ -60,7 +60,7 @@ Learn more at https://www.amplify.com
 Make sure you have the following installed before starting:
 
 * [nodejs](https://nodejs.org/en/download/)
-* [npm](https://www.npmjs.com/get-npm?utm_source=house&utm_medium=homepage&utm_campaign=free%20orgs&utm_term=Install%20npm)
+* [npm](https://www.npmjs.com/get-npm?utm_source=house\&utm_medium=homepage\&utm_campaign=free%20orgs\&utm_term=Install%20npm)
 * [serverless](https://serverless.com/framework/docs/providers/aws/guide/installation/)
 
 Also allow the lambda to have the following IAM permissions:
@@ -180,7 +180,7 @@ npm test
 
 All tests should pass.
 
-To run integration tests, set an environment variable TEST_VPC_NAME to the VPC you will be testing for. Then,
+To run integration tests, set an environment variable TEST\_VPC\_NAME to the VPC you will be testing for. Then,
 
 ```
 export AWS_PROFILE=your_profile
@@ -189,7 +189,7 @@ npm build
 npm run integration-test
 ```
 
-If there is an error build and install the node_module inside the serverless-vpc-discovery folder:
+If there is an error build and install the node\_module inside the serverless-vpc-discovery folder:
 
 ```
 npm build
