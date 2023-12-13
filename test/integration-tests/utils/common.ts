@@ -1,10 +1,10 @@
-import { VPCDiscovery } from "../../../src/types";
-import yaml = require("js-yaml")
-import fs = require("fs")
+import { ServerlessService, VPCDiscovery } from "../../../src/types";
+import yaml = require("js-yaml");
+import fs = require("fs");
 
 function readYml (path: string) {
   try {
-    return yaml.load(fs.readFileSync(path, "utf8"));
+    return <ServerlessService>yaml.load(fs.readFileSync(path, "utf8"));
   } catch (e) {
     console.log(e);
   }
@@ -12,28 +12,29 @@ function readYml (path: string) {
 
 /**
  * Read sls config and generate {name: vpcDiscovery config} collection
- * @returns {"test-sls-vpc-dicovery-test-helloWorld": {vpcName: ${env:TEST_VPC_NAME}, ...} }
+ * @returns {"test-sls-vpc-discovery-test-helloWorld": {vpcName: ${env:TEST_VPC_NAME}, ...} }
  */
 function readLambdaFunctions (configPath: string, vpcName: string, identifier: string) {
   const config = readYml(configPath);
-  const serviceName = config.service.replace(/\${env:RANDOM_STRING}/gi, identifier);
+  const serviceName = (config.service || "").replace(/\${env:RANDOM_STRING}/gi, identifier);
   const stage = config.provider.stage;
   const funcConf = {};
-  for (const fName in config.functions) {
+
+  Object.keys(config.functions).forEach((fName) => {
     const vpcConfig = config.functions[fName].vpcDiscovery;
     if (typeof vpcConfig !== "boolean" && vpcConfig) {
       Object.assign(vpcConfig, compileVPCConfig(vpcConfig, vpcName));
     }
 
     funcConf[`${serviceName}-${stage}-${fName}`] = vpcConfig;
-  }
+  });
 
   return funcConf;
 }
 
 /**
  * Read basic sls VPC discovery config
- * @returns {"test-sls-vpc-dicovery-test-helloWorld": {vpcName: ${env:TEST_VPC_NAME}, ...} }
+ * @returns {"test-sls-vpc-discovery-test-helloWorld": {vpcName: ${env:TEST_VPC_NAME}, ...} }
  */
 function readBasicVPCConfig (configPath: string, vpcName: string) {
   const config = readYml(configPath);
@@ -50,18 +51,6 @@ function readBasicVPCConfig (configPath: string, vpcName: string) {
 function compileVPCConfig (vpcDiscovery: VPCDiscovery, vpcName) {
   const regExp = /\${env:TEST_VPC_NAME}/gi;
   vpcDiscovery.vpcName = vpcDiscovery.vpcName.replace(regExp, vpcName);
-  // TODO: deprecated in 3.0.0
-  if (vpcDiscovery.subnetNames) {
-    vpcDiscovery.subnetNames = vpcDiscovery.subnetNames.map((item) => {
-      return item.replace(regExp, vpcName);
-    });
-  }
-  if (vpcDiscovery.securityGroupNames) {
-    vpcDiscovery.securityGroupNames = vpcDiscovery.securityGroupNames.map((item) => {
-      return item.replace(regExp, vpcName);
-    });
-  }
-  // end of the deprecation
 
   if (vpcDiscovery.subnets) {
     vpcDiscovery.subnets = vpcDiscovery.subnets.map((item) => {

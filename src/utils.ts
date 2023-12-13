@@ -1,7 +1,4 @@
-import { Service } from "aws-sdk";
 import { Client, Command } from "@smithy/smithy-client";
-
-const RETRYABLE_ERRORS = ["Throttling", "RequestLimitExceeded", "TooManyRequestsException"];
 
 /**
  * Iterate through the pages of a AWS SDK response and collect them into a single array
@@ -22,49 +19,12 @@ async function getAWSPagedResults<ClientOutput> (
   let results = [];
   let response = await client.send(params);
   results = results.concat(response[resultsKey] || results);
-  while (
-    nextRequestTokenKey in response && response[nextRequestTokenKey]
-  ) {
+  while (nextRequestTokenKey in response && response[nextRequestTokenKey]) {
     params.input[nextTokenKey] = response[nextRequestTokenKey];
     response = await client.send(params);
     results = results.concat(response[resultsKey]);
   }
   return results;
-}
-
-async function throttledCall (service: Service, funcName: string, params: object): Promise<any> {
-  const maxTimePassed = 5 * 60;
-
-  let timePassed = 0;
-  let previousInterval = 0;
-
-  const minWait = 3;
-  const maxWait = 60;
-
-  while (true) {
-    try {
-      return await service[funcName](params).promise();
-    } catch (ex) {
-      // rethrow the exception if it is not a type of retryable exception
-      if (RETRYABLE_ERRORS.indexOf(ex.code) === -1) {
-        throw ex;
-      }
-
-      // rethrow the exception if we have waited too long
-      if (timePassed >= maxTimePassed) {
-        throw ex;
-      }
-
-      // Sleep using the Decorrelated Jitter algorithm recommended by AWS
-      // https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
-      let newInterval = Math.random() * Math.min(maxWait, previousInterval * 3);
-      newInterval = Math.max(minWait, newInterval);
-
-      await sleep(newInterval);
-      previousInterval = newInterval;
-      timePassed += previousInterval;
-    }
-  }
 }
 
 /**
@@ -103,7 +63,6 @@ function getValueFromTags (tags, tagKey) {
 export {
   sleep,
   getAWSPagedResults,
-  throttledCall,
   isObjectEmpty,
   wildcardMatches,
   getValueFromTags

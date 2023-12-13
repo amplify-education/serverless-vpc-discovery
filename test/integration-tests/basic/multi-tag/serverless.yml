@@ -47,7 +47,8 @@ custom:
           - ${env:TEST_VPC_NAME}_intranet_us-west-2b
           - ${env:TEST_VPC_NAME}_intranet_us-west-2c
     securityGroups:
-      - names:
+      - tagKey: Name
+        tagValues:
           - ${env:TEST_VPC_NAME}_intranet
 
 package:

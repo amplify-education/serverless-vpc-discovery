@@ -1,5 +1,5 @@
 # basic example
-service: test-sls-vpc-dicovery-${env:RANDOM_STRING}
+service: test-sls-vpc-discovery-${env:RANDOM_STRING}
 
 provider:
   name: aws
@@ -21,8 +21,9 @@ functions:
     # inherit basic subnet ids and use func security group ids
     vpcDiscovery:
       vpcName: ${env:TEST_VPC_NAME}
-      securityGroupNames:
-        - ${env:TEST_VPC_NAME}_maintenance
+      securityGroups:
+        - names:
+            - ${env:TEST_VPC_NAME}_maintenance
 
 plugins:
   - serverless-vpc-discovery
@@ -30,12 +31,15 @@ plugins:
 custom:
   vpcDiscovery:
     vpcName: ${env:TEST_VPC_NAME}
-    subnetNames:
-      - ${env:TEST_VPC_NAME}_intranet_us-west-2a
-      - ${env:TEST_VPC_NAME}_intranet_us-west-2b
-      - ${env:TEST_VPC_NAME}_intranet_us-west-2c
-    securityGroupNames:
-      - ${env:TEST_VPC_NAME}_intranet
+    subnets:
+      - tagKey: Name
+        tagValues:
+          - ${env:TEST_VPC_NAME}_intranet_us-west-2a
+          - ${env:TEST_VPC_NAME}_intranet_us-west-2b
+          - ${env:TEST_VPC_NAME}_intranet_us-west-2c
+    securityGroups:
+      - names:
+          - ${env:TEST_VPC_NAME}_intranet
 
 package:
   patterns:
