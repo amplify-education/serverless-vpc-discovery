@@ -6,7 +6,7 @@ export default class LambdaWrap {
 
   constructor (region: string) {
     this.client = new LambdaClient({
-      region: region,
+      region,
       retryStrategy: Globals.getRetryStrategy()
     });
   }

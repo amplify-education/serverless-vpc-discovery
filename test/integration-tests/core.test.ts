@@ -26,10 +26,10 @@ const testCases = [
     testDescription: "Multi tag",
     testFolder: `${CONFIGS_FOLDER}/multi-tag`
   },
-  // {
-  //   testDescription: "No basic VPC config",
-  //   testFolder: `${CONFIGS_FOLDER}/only-functions`
-  // }
+  {
+    testDescription: "No basic VPC config",
+    testFolder: `${CONFIGS_FOLDER}/only-functions`
+  }
 ];
 
 describe("Integration Tests", function () {

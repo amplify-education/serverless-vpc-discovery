@@ -11,7 +11,7 @@ export default class EC2Wrap {
 
   constructor (region: string) {
     this.client = new EC2Client({
-      region: region,
+      region,
       retryStrategy: Globals.getRetryStrategy()
     });
   }
