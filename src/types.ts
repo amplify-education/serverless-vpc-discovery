@@ -18,34 +18,34 @@ export interface VPCDiscovery {
   securityGroupNames?: string[];
 }
 
-export interface FuncVPCDiscovery extends VPCDiscovery {
-}
-
 export interface VPC {
   subnetIds?: string[];
   securityGroupIds?: string[];
 }
 
+export interface ServerlessService {
+  service: string
+  provider: {
+    stage: string,
+    region?: string
+    vpc: {},
+  },
+  functions: {
+    name: {
+      vpc: {
+        subnetIds: {} | undefined,
+        securityGroupIds: {} | undefined,
+      },
+      vpcDiscovery: VPCDiscovery | boolean | undefined
+    }
+  },
+  custom: {
+    vpcDiscovery: VPCDiscovery | undefined
+  }
+}
+
 export interface ServerlessInstance {
-  service: {
-    service: string
-    provider: {
-      stage: string
-      vpc: {},
-    },
-    functions: {
-      name: {
-        vpc: {
-          subnetIds: {} | undefined,
-          securityGroupIds: {} | undefined,
-        },
-        vpcDiscovery: FuncVPCDiscovery | boolean | undefined
-      }
-    },
-    custom: {
-      vpcDiscovery: VPCDiscovery | undefined
-    },
-  };
+  service: ServerlessService;
   providers: {
     aws: {
       getCredentials (),
@@ -62,22 +62,27 @@ export interface ServerlessInstance {
   };
 }
 
-interface ServerlessProgress {
-    update(message: string): void
+export interface ServerlessOptions {
+  stage: string;
+  region?: string;
+}
 
-    remove(): void
+interface ServerlessProgress {
+  update (message: string): void
+
+  remove (): void
 }
 
 export interface ServerlessProgressFactory {
-    get(name: string): ServerlessProgress;
+  get (name: string): ServerlessProgress;
 }
 
 export interface ServerlessUtils {
-    writeText: (message: string) => void,
-    log: ((message: string) => void) & {
-        error(message: string): void
-        verbose(message: string): void
-        warning(message: string): void
-    }
-    progress: ServerlessProgressFactory
+  writeText: (message: string) => void,
+  log: ((message: string) => void) & {
+    error (message: string): void
+    verbose (message: string): void
+    warning (message: string): void
+  }
+  progress: ServerlessProgressFactory
 }

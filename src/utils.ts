@@ -1,70 +1,30 @@
-import { Service } from "aws-sdk";
-
-const RETRYABLE_ERRORS = ["Throttling", "RequestLimitExceeded", "TooManyRequestsException"];
+import { Client, Command } from "@smithy/smithy-client";
 
 /**
  * Iterate through the pages of a AWS SDK response and collect them into a single array
  *
- * @param service - The AWS service instance to use to make the calls
- * @param funcName - The function name in the service to call
+ * @param client - The AWS service instance to use to make the calls
  * @param resultsKey - The key name in the response that contains the items to return
  * @param nextTokenKey - The request key name to append to the request that has the paging token value
  * @param nextRequestTokenKey - The response key name that has the next paging token value
  * @param params - Parameters to send in the request
  */
-async function getAWSPagedResults (
-  service: Service,
-  funcName: string,
+async function getAWSPagedResults<ClientOutput> (
+  client: Client<any, any, any, any>,
   resultsKey: string,
   nextTokenKey: string,
   nextRequestTokenKey: string,
-  params: object
-): Promise<any[]> {
+  params: Command<any, any, any>
+): Promise<ClientOutput[]> {
   let results = [];
-  let response = await throttledCall(service, funcName, params);
-  results = results.concat(response[resultsKey]);
-  // eslint-disable-next-line no-prototype-builtins
-  while (response.hasOwnProperty(nextRequestTokenKey) && response[nextRequestTokenKey]) {
-    params[nextTokenKey] = response[nextRequestTokenKey];
-    response = await service[funcName](params).promise();
+  let response = await client.send(params);
+  results = results.concat(response[resultsKey] || results);
+  while (nextRequestTokenKey in response && response[nextRequestTokenKey]) {
+    params.input[nextTokenKey] = response[nextRequestTokenKey];
+    response = await client.send(params);
     results = results.concat(response[resultsKey]);
   }
   return results;
-}
-
-async function throttledCall (service: Service, funcName: string, params: object): Promise<any> {
-  const maxTimePassed = 5 * 60;
-
-  let timePassed = 0;
-  let previousInterval = 0;
-
-  const minWait = 3;
-  const maxWait = 60;
-
-  while (true) {
-    try {
-      return await service[funcName](params).promise();
-    } catch (ex) {
-      // rethrow the exception if it is not a type of retryable exception
-      if (RETRYABLE_ERRORS.indexOf(ex.code) === -1) {
-        throw ex;
-      }
-
-      // rethrow the exception if we have waited too long
-      if (timePassed >= maxTimePassed) {
-        throw ex;
-      }
-
-      // Sleep using the Decorrelated Jitter algorithm recommended by AWS
-      // https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
-      let newInterval = Math.random() * Math.min(maxWait, previousInterval * 3);
-      newInterval = Math.max(minWait, newInterval);
-
-      await sleep(newInterval);
-      previousInterval = newInterval;
-      timePassed += previousInterval;
-    }
-  }
 }
 
 /**
@@ -76,8 +36,8 @@ async function sleep (seconds) {
   return new Promise((resolve) => setTimeout(resolve, 1000 * seconds));
 }
 
-function isObjectEmpty (object: Object): boolean {
-  return Object.keys(object).length === 0;
+function isObjectEmpty (value: object): boolean {
+  return Object.keys(value).length === 0;
 }
 
 function replaceAll (input: string, search: string, replace: string) {
@@ -103,7 +63,6 @@ function getValueFromTags (tags, tagKey) {
 export {
   sleep,
   getAWSPagedResults,
-  throttledCall,
   isObjectEmpty,
   wildcardMatches,
   getValueFromTags

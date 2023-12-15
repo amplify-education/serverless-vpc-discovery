@@ -1,12 +1,16 @@
 import { EC2Wrapper } from "../aws/ec2-wrapper";
-import { VPCDiscovery, FuncVPCDiscovery, VPC } from "../types";
-import Globals from "../globals";
+import { VPCDiscovery, VPC } from "../types";
 import { isObjectEmpty } from "../utils";
 import { validateVPCDiscoveryConfig } from "../validation";
+import Logging from "../logging";
+import { Md5 } from "ts-md5";
 
 export class LambdaFunction {
-  private ec2Wrapper: EC2Wrapper;
+  public ec2Wrapper: EC2Wrapper;
   private readonly basicVPCDiscovery?: VPCDiscovery;
+  private vpcIdsCache = {};
+  private subnetsIdsCache = {};
+  private SGIdsCache = {};
 
   constructor (credentials: any, basicVPCDiscovery: VPCDiscovery) {
     this.ec2Wrapper = new EC2Wrapper(credentials);
@@ -17,10 +21,10 @@ export class LambdaFunction {
    * Validate and return VPC config for the given function
    * @returns {Promise<VPC>}
    */
-  public async getFuncVPC (funcName: string, funcVPCDiscovery: FuncVPCDiscovery): Promise<VPC> {
+  public async getFuncVPC (funcName: string, funcVPCDiscovery: VPCDiscovery): Promise<VPC> {
     if (typeof funcVPCDiscovery === "boolean" && !funcVPCDiscovery) {
       // skip vpc setup for `vpcDiscovery=false` option
-      Globals.logInfo(`Skipping VPC config for the function '${funcName}'`);
+      Logging.logInfo(`Skipping VPC config for the function '${funcName}'`);
       return null;
     }
 
@@ -43,10 +47,10 @@ export class LambdaFunction {
     }
 
     try {
-      Globals.logInfo(`Getting VPC config for the function: '${funcName}'\n`);
+      Logging.logInfo(`Getting VPC config for the function: '${funcName}'\n`);
       return await this.getVpcConfig(vpcDiscovery);
     } catch (e) {
-      Globals.logError(`Function '${funcName}' VPC not configured based on the error: ${e}`);
+      Logging.logError(`Function '${funcName}' VPC not configured based on the error: ${e}`);
     }
     return null;
   }
@@ -58,14 +62,13 @@ export class LambdaFunction {
    */
   private async getVpcConfig (vpcDiscovery: VPCDiscovery): Promise<VPC> {
     const vpc: VPC = {};
-    const vpcId = await this.ec2Wrapper.getVpcId(vpcDiscovery.vpcName);
-
-    Globals.logInfo(`Found VPC with id '${vpcId}'`);
+    const vpcId = await this.getVPCId(vpcDiscovery.vpcName);
+    Logging.logInfo(`Found VPC with id '${vpcId}'`);
 
     if (vpcDiscovery.subnets) {
       vpc.subnetIds = [];
       for (const subnet of vpcDiscovery.subnets) {
-        const subnetIds = await this.ec2Wrapper.getSubnetIds(vpcId, subnet.tagKey, subnet.tagValues);
+        const subnetIds = await this.getVPCSubnets(vpcId, subnet.tagKey, subnet.tagValues);
         vpc.subnetIds = vpc.subnetIds.concat(subnetIds);
       }
       // remove duplicate elements from the array
@@ -74,12 +77,47 @@ export class LambdaFunction {
     if (vpcDiscovery.securityGroups) {
       vpc.securityGroupIds = [];
       for (const group of vpcDiscovery.securityGroups) {
-        const groupIds = await this.ec2Wrapper.getSecurityGroupIds(vpcId, group.names, group.tagKey, group.tagValues);
+        const groupIds = await this.getVPCSecurityGroups(vpcId, group.names, group.tagKey, group.tagValues);
         vpc.securityGroupIds = vpc.securityGroupIds.concat(groupIds);
       }
       // remove duplicate elements from the array
       vpc.securityGroupIds = [...new Set(vpc.securityGroupIds)];
     }
     return vpc;
+  }
+
+  /**
+   * Get the VPC id from cache or read from AWS
+   * @returns {Promise<object>}
+   */
+  private async getVPCId (vpcName: string) {
+    if (this.vpcIdsCache[vpcName] === undefined) {
+      this.vpcIdsCache[vpcName] = await this.ec2Wrapper.getVpcId(vpcName);
+    }
+    return this.vpcIdsCache[vpcName];
+  }
+
+  /**
+   * Get the subnet ids from cache or read from AWS
+   * @returns {Promise<object>}
+   */
+  private async getVPCSubnets (vpcId: string, tagKey: string, tagValues: string[]) {
+    const hash = Md5.hashStr(vpcId + tagKey + tagValues.join());
+    if (!this.subnetsIdsCache[hash]) {
+      this.subnetsIdsCache[hash] = await this.ec2Wrapper.getSubnetIds(vpcId, tagKey, tagValues);
+    }
+    return this.subnetsIdsCache[hash];
+  }
+
+  /**
+   * Get the security group ids from cache or read from AWS
+   * @returns {Promise<object>}
+   */
+  private async getVPCSecurityGroups (vpcId: string, names: string[], tagKey: string, tagValues: string[]) {
+    const hash = Md5.hashStr(vpcId + (names || []).join() + tagKey + (tagValues || []).join());
+    if (!this.SGIdsCache[hash]) {
+      this.SGIdsCache[hash] = await this.ec2Wrapper.getSecurityGroupIds(vpcId, names, tagKey, tagValues);
+    }
+    return this.SGIdsCache[hash];
   }
 }

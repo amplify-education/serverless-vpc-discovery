@@ -1,11 +1,17 @@
 "use strict";
 
-import * as AWS from "aws-sdk";
-import * as AWSMock from "aws-sdk-mock";
 import chai = require("chai");
 import spies = require("chai-spies");
 import VPCPlugin from "../../src/index";
-import { FuncVPCDiscovery } from "../../src/types";
+import { VPCDiscovery } from "../../src/types";
+import Globals from "../../src/globals";
+import { mockClient } from "aws-sdk-client-mock";
+import {
+  DescribeSecurityGroupsCommand,
+  DescribeSubnetsCommand,
+  DescribeVpcsCommand,
+  EC2Client
+} from "@aws-sdk/client-ec2";
 
 const expect = chai.expect;
 chai.use(spies);
@@ -13,12 +19,6 @@ chai.use(spies);
 const emptyData = require("./empty-data.json");
 const testData = require("./test-data.json");
 
-// Used for changing what to test
-const testCreds = {
-  accessKeyId: "test_key",
-  secretAccessKey: "test_secret",
-  sessionToken: "test_session"
-};
 const vpc = "test";
 const subnets = [
   {
@@ -36,6 +36,11 @@ const securityGroups = [
   }
 ];
 const vpcId = "vpc-test";
+
+// set global defaults
+Globals.options = {
+  stage: "test"
+};
 
 // This will create a mock plugin to be used for testing
 const testFuncName = "funcTest";
@@ -60,13 +65,15 @@ const constructPlugin = (vpcConfig) => {
     },
     providers: {
       aws: {
-        getCredentials: () => new AWS.Credentials(testCreds),
-        getRegion: () => "us-moon-1"
+        getRegion: () => "us-moon-1",
+        getCredentials: () => new Object()
       }
     },
     configSchemaHandler: {
-      defineCustomProperties: (props: any) => {},
-      defineFunctionProperties: (provider: string, props: any) => {}
+      defineCustomProperties: (props: any) => {
+      },
+      defineFunctionProperties: (provider: string, props: any) => {
+      }
     }
   };
   return new VPCPlugin(serverless, null);
@@ -77,18 +84,6 @@ const initFuncMessage = `[Info] Getting VPC config for the function: '${testFunc
 const foundFuncMessage = `[Info] Found VPC with id '${vpcId}'`;
 
 describe("serverless-vpc-plugin", () => {
-  it("check aws config", () => {
-    const plugin = constructPlugin({
-      vpcName: vpc,
-      subnets: subnets,
-      securityGroups: securityGroups
-    });
-    plugin.initResources();
-
-    expect(plugin.awsCredentials.accessKeyId).to.equal(testCreds.accessKeyId);
-    expect(plugin.awsCredentials.sessionToken).to.equal(testCreds.sessionToken);
-  });
-
   it("registers hooks", () => {
     const plugin = constructPlugin({});
     expect(plugin.hooks["before:package:initialize"]).to.be.a("function");
@@ -97,9 +92,10 @@ describe("serverless-vpc-plugin", () => {
 
 describe("Given a vpc,", () => {
   it("function updates vpc", async () => {
-    AWSMock.mock("EC2", "describeVpcs", testData);
-    AWSMock.mock("EC2", "describeSubnets", testData);
-    AWSMock.mock("EC2", "describeSecurityGroups", testData);
+    const EC2ClientMock = mockClient(EC2Client);
+    EC2ClientMock.on(DescribeVpcsCommand).resolves(testData);
+    EC2ClientMock.on(DescribeSubnetsCommand).resolves(testData);
+    EC2ClientMock.on(DescribeSecurityGroupsCommand).resolves(testData);
 
     const plugin = constructPlugin({
       vpcName: vpc,
@@ -123,12 +119,13 @@ describe("Given a vpc,", () => {
   });
 
   it("vpc option given does not exist", async () => {
-    AWSMock.mock("EC2", "describeVpcs", emptyData);
+    const EC2ClientMock = mockClient(EC2Client);
+    EC2ClientMock.on(DescribeVpcsCommand).resolves(emptyData);
 
     const plugin = constructPlugin({});
     plugin.initResources();
 
-    const funcVPCDiscovery: FuncVPCDiscovery = {
+    const funcVPCDiscovery: VPCDiscovery = {
       vpcName: "test",
       subnets: [{ tagKey: "Name", tagValues: ["test_subnet"] }]
     };
@@ -141,7 +138,6 @@ describe("Given a vpc,", () => {
   });
 
   afterEach(() => {
-    AWSMock.restore();
     consoleOutput = [];
   });
 });
@@ -149,16 +145,17 @@ describe("Given a vpc,", () => {
 describe("Given valid inputs for Subnets and Security Groups ", () => {
   let plugin;
   beforeEach(() => {
-    AWSMock.mock("EC2", "describeVpcs", testData);
-    AWSMock.mock("EC2", "describeSecurityGroups", testData);
-    AWSMock.mock("EC2", "describeSubnets", testData);
+    const EC2ClientMock = mockClient(EC2Client);
+    EC2ClientMock.on(DescribeVpcsCommand).resolves(testData);
+    EC2ClientMock.on(DescribeSubnetsCommand).resolves(testData);
+    EC2ClientMock.on(DescribeSecurityGroupsCommand).resolves(testData);
 
     plugin = constructPlugin({});
     plugin.initResources();
   });
 
   it("without wildcards", async () => {
-    const funcVPCDiscovery: FuncVPCDiscovery = {
+    const funcVPCDiscovery: VPCDiscovery = {
       vpcName: "test",
       subnets: subnets,
       securityGroups: securityGroups
@@ -171,7 +168,7 @@ describe("Given valid inputs for Subnets and Security Groups ", () => {
   });
 
   it("with wildcards", async () => {
-    const funcVPCDiscovery: FuncVPCDiscovery = {
+    const funcVPCDiscovery: VPCDiscovery = {
       vpcName: "test",
       subnets: [{ tagKey: "Name", tagValues: ["test_subnet_*"] }],
       securityGroups: [{ names: ["test_group_*"] }]
@@ -184,29 +181,24 @@ describe("Given valid inputs for Subnets and Security Groups ", () => {
   });
 
   afterEach(() => {
-    AWSMock.restore();
     consoleOutput = [];
   });
 });
 
 describe("Given invalid input for ", () => {
-  let plugin;
-  beforeEach(() => {
-    plugin = constructPlugin({});
-
-    AWSMock.mock("EC2", "describeVpcs", testData);
-  });
-
-  const funcVPCDiscovery: FuncVPCDiscovery = {
+  const funcVPCDiscovery: VPCDiscovery = {
     vpcName: "test",
     subnets: [{ tagKey: "Name", tagValues: ["test_subnet_1"] }],
     securityGroups: [{ names: ["test_group_1"] }]
   };
 
   it("Subnets", async () => {
-    AWSMock.mock("EC2", "describeSecurityGroups", testData);
-    AWSMock.mock("EC2", "describeSubnets", emptyData);
+    const EC2ClientMock = mockClient(EC2Client);
+    EC2ClientMock.on(DescribeVpcsCommand).resolves(testData);
+    EC2ClientMock.on(DescribeSubnetsCommand).resolves(emptyData);
+    EC2ClientMock.on(DescribeSecurityGroupsCommand).resolves(testData);
 
+    const plugin = constructPlugin({});
     plugin.initResources();
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
@@ -218,9 +210,12 @@ describe("Given invalid input for ", () => {
   });
 
   it("Security Groups", async () => {
-    AWSMock.mock("EC2", "describeSecurityGroups", emptyData);
-    AWSMock.mock("EC2", "describeSubnets", testData);
+    const EC2ClientMock = mockClient(EC2Client);
+    EC2ClientMock.on(DescribeVpcsCommand).resolves(testData);
+    EC2ClientMock.on(DescribeSubnetsCommand).resolves(testData);
+    EC2ClientMock.on(DescribeSecurityGroupsCommand).resolves(emptyData);
 
+    const plugin = constructPlugin({});
     plugin.initResources();
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
@@ -232,28 +227,25 @@ describe("Given invalid input for ", () => {
   });
 
   afterEach(() => {
-    AWSMock.restore();
     consoleOutput = [];
   });
 });
 
 describe("Given input missing in AWS for ", () => {
-  let plugin;
   beforeEach(() => {
-    AWSMock.mock("EC2", "describeVpcs", testData);
-    AWSMock.mock("EC2", "describeSubnets", testData);
-    AWSMock.mock("EC2", "describeSecurityGroups", testData);
-
-    plugin = constructPlugin({});
-    plugin.initResources();
+    const EC2ClientMock = mockClient(EC2Client);
+    EC2ClientMock.on(DescribeVpcsCommand).resolves(testData);
+    EC2ClientMock.on(DescribeSubnetsCommand).resolves(testData);
+    EC2ClientMock.on(DescribeSecurityGroupsCommand).resolves(testData);
   });
 
   it("Subnets", async () => {
-    const funcVPCDiscovery: FuncVPCDiscovery = {
+    const funcVPCDiscovery: VPCDiscovery = {
       vpcName: "test",
       subnets: [{ tagKey: "Name", tagValues: ["test_subnet_*", "missing_subnet"] }],
       securityGroups: [{ names: ["test_group_*"] }]
     };
+    const plugin = constructPlugin({});
     plugin.initResources();
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
@@ -265,11 +257,14 @@ describe("Given input missing in AWS for ", () => {
   });
 
   it("Security Groups", async () => {
-    const funcVPCDiscovery: FuncVPCDiscovery = {
+    const funcVPCDiscovery: VPCDiscovery = {
       vpcName: "test",
       subnets: [{ tagKey: "Name", tagValues: ["test_subnet_*"] }],
       securityGroups: [{ names: ["test_group_*", "missing_security_group"] }]
     };
+
+    const plugin = constructPlugin({});
+    plugin.initResources();
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = "Security groups do not exist for the names";
@@ -280,14 +275,14 @@ describe("Given input missing in AWS for ", () => {
   });
 
   afterEach(() => {
-    AWSMock.restore();
     consoleOutput = [];
   });
 });
 
 describe("Catching errors in updateVpcConfig ", () => {
   it("AWS api call describeVpcs fails", async () => {
-    AWSMock.mock("EC2", "describeVpcs", emptyData);
+    const EC2ClientMock = mockClient(EC2Client);
+    EC2ClientMock.on(DescribeVpcsCommand).resolves(emptyData);
 
     const plugin = constructPlugin({
       vpcName: vpc,
@@ -321,7 +316,6 @@ describe("Catching errors in updateVpcConfig ", () => {
   });
 
   afterEach(() => {
-    AWSMock.restore();
     consoleOutput = [];
   });
 });

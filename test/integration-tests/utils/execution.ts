@@ -36,23 +36,19 @@ async function createTempDir (tempDir, folderName) {
 /**
  * Runs `sls deploy` for the given folder
  * @param tempDir
- * @param identifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>}
  */
-function slsDeploy (tempDir, identifier) {
-  process.env.RANDOM_STRING = identifier;
+function slsDeploy (tempDir) {
   return exec(`cd ${tempDir} && npx serverless deploy`);
 }
 
 /**
  * Runs `sls remove` for the given folder
  * @param tempDir
- * @param identifier Random alphanumeric string to identify specific run of integration tests.
  * @returns {Promise<void>}
  */
-function slsRemove (tempDir, identifier) {
-  process.env.RANDOM_STRING = identifier;
-  return exec(`cd ${tempDir} && npx serverless remove`);
+function slsRemove (tempDir) {
+  return exec(`cd ${tempDir} && npx serverless remove --verbose`);
 }
 
 export {

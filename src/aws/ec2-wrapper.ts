@@ -1,11 +1,21 @@
-import { EC2 } from "aws-sdk";
 import { getAWSPagedResults, getValueFromTags, wildcardMatches } from "../utils";
+import {
+  DescribeSecurityGroupsCommand,
+  DescribeSubnetsCommand,
+  DescribeVpcsCommand,
+  EC2Client,
+  SecurityGroup, Subnet, Vpc
+} from "@aws-sdk/client-ec2";
+import Globals from "../globals";
 
 export class EC2Wrapper {
-  public ec2: EC2
+  public ec2: EC2Client
 
   constructor (credentials: any) {
-    this.ec2 = new EC2(credentials);
+    this.ec2 = new EC2Client([{
+      credentials,
+      retryStrategy: Globals.getRetryStrategy()
+    }]);
   }
 
   /**
@@ -14,19 +24,17 @@ export class EC2Wrapper {
    * @returns {Promise.<string>}
    */
   public async getVpcId (vpcName: string): Promise<string> {
-    const params = {
-      Filters: [{
-        Name: "tag:Name",
-        Values: [vpcName]
-      }]
-    };
-    const vpcItems = await getAWSPagedResults(
+    const vpcItems: Vpc[] = await getAWSPagedResults(
       this.ec2,
-      "describeVpcs",
       "Vpcs",
       "NextToken",
       "NextToken",
-      params
+      new DescribeVpcsCommand({
+        Filters: [{
+          Name: "tag:Name",
+          Values: [vpcName]
+        }]
+      })
     );
     if (vpcItems.length === 0) {
       throw new Error(`VPC with tag key 'Name' and tag value '${vpcName}' does not exist.`);
@@ -43,23 +51,20 @@ export class EC2Wrapper {
    * @returns {Promise.<string[]>}
    */
   public async getSubnetIds (vpcId: string, tagKey: string, tagValues: string[]): Promise<string[]> {
-    const params = {
-      Filters: [{
-        Name: "vpc-id",
-        Values: [vpcId]
-      }, {
-        Name: `tag:${tagKey}`,
-        Values: tagValues
-      }]
-    };
-
-    const subnets = await getAWSPagedResults(
+    const subnets: Subnet[] = await getAWSPagedResults(
       this.ec2,
-      "describeSubnets",
       "Subnets",
       "NextToken",
       "NextToken",
-      params
+      new DescribeSubnetsCommand({
+        Filters: [{
+          Name: "vpc-id",
+          Values: [vpcId]
+        }, {
+          Name: `tag:${tagKey}`,
+          Values: tagValues
+        }]
+      })
     );
 
     const missingSubnetValues = tagValues.filter((tagValue) => {
@@ -90,22 +95,21 @@ export class EC2Wrapper {
    */
   public async getSecurityGroupIds (vpcId: string, names?: string[], tagKey?: string, tagValues?: string[]): Promise<string[]> {
     // init filter by vpc id
-    const params = { Filters: [{ Name: "vpc-id", Values: [vpcId] }] };
+    const input = { Filters: [{ Name: "vpc-id", Values: [vpcId] }] };
     // update filters with names if specified
     if (names) {
-      params.Filters.push({ Name: "group-name", Values: names });
+      input.Filters.push({ Name: "group-name", Values: names });
     }
     // update filters with tag and values if specified
     if (tagKey && tagValues) {
-      params.Filters.push({ Name: `tag:${tagKey}`, Values: tagValues });
+      input.Filters.push({ Name: `tag:${tagKey}`, Values: tagValues });
     }
-    const securityGroups = await getAWSPagedResults(
+    const securityGroups: SecurityGroup[] = await getAWSPagedResults(
       this.ec2,
-      "describeSecurityGroups",
       "SecurityGroups",
       "NextToken",
       "NextToken",
-      params
+      new DescribeSecurityGroupsCommand(input)
     );
 
     if (securityGroups.length === 0) {

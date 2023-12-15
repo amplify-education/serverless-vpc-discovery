@@ -3,9 +3,9 @@ service: test-sls-multi-tag-${env:RANDOM_STRING}
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs16.x
   region: us-west-2
-  endpointType: regional
+  endpointType: REGIONAL
   stage: test
 
 functions:
@@ -24,9 +24,9 @@ functions:
       subnets:
         - tagKey: Name
           tagValues:
-            - ${env:TEST_VPC_NAME}_maintenance_us-west-2a
-            - ${env:TEST_VPC_NAME}_maintenance_us-west-2b
-            - ${env:TEST_VPC_NAME}_maintenance_us-west-2c
+            - ${env:TEST_VPC_NAME}_intranet_us-west-2a
+            - ${env:TEST_VPC_NAME}_intranet_us-west-2b
+            - ${env:TEST_VPC_NAME}_intranet_us-west-2c
       securityGroups:
         - tagKey: Name
           tagValues:
@@ -47,7 +47,8 @@ custom:
           - ${env:TEST_VPC_NAME}_intranet_us-west-2b
           - ${env:TEST_VPC_NAME}_intranet_us-west-2c
     securityGroups:
-      - names:
+      - tagKey: Name
+        tagValues:
           - ${env:TEST_VPC_NAME}_intranet
 
 package:
