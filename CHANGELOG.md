@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2023-12-15
+
+### Changed
+
+- Moved from AWS SDK V1 to AWS SDK V3
+- Speed up VPC config setup by caching
+
 ## [4.1.0] - 2023-03-09
 
 ### Changed

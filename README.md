@@ -201,7 +201,7 @@ npm install .
 When deploying run:
 
 ```
-serverless deploy --env 'VPC Name'
+serverless deploy
 ```
 
 And that should be it! Good Luck!
