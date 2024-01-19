@@ -26,6 +26,7 @@ export interface VPC {
 export interface ServerlessService {
   service: string
   provider: {
+    profile?: string,
     stage: string,
     region?: string
     vpc: {},

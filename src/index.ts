@@ -6,16 +6,19 @@ import Globals from "./globals";
 import { validateVPCDiscoveryConfig } from "./validation";
 import { customProperties, functionProperties } from "./schema";
 import Logging from "./logging";
+import { loadConfig } from "@smithy/node-config-provider";
+import { NODE_REGION_CONFIG_FILE_OPTIONS, NODE_REGION_CONFIG_OPTIONS } from "@smithy/config-resolver";
 
 class VPCPlugin {
   private serverless: ServerlessInstance;
   public hooks: object;
-  public awsCredentials: any;
   public lambdaFunction: LambdaFunction;
 
   constructor (serverless, options, v3Utils?: ServerlessUtils) {
     this.serverless = serverless;
+
     Globals.serverless = serverless;
+    Globals.options = options;
 
     if (v3Utils?.log) {
       Globals.v3Utils = v3Utils;
@@ -36,7 +39,7 @@ class VPCPlugin {
    */
   public async hookWrapper (lifecycleFunc: any) {
     this.validateCustomVPCDiscoveryConfig();
-    this.initResources();
+    await this.initResources();
     return await lifecycleFunc.call(this);
   }
 
@@ -89,12 +92,43 @@ class VPCPlugin {
   /**
    * Setup AWS resources
    */
-  public initResources (): void {
-    this.awsCredentials = this.serverless.providers.aws.getCredentials();
-    this.awsCredentials.region = this.serverless.providers.aws.getRegion();
+  public async initResources (): Promise<void> {
+    // setup AWS resources
+    await this.initSLSCredentials();
+    await this.initAWSRegion();
 
     const baseVPCDiscovery = this.serverless.service.custom ? this.serverless.service.custom.vpcDiscovery : null;
-    this.lambdaFunction = new LambdaFunction(this.awsCredentials, baseVPCDiscovery);
+    this.lambdaFunction = new LambdaFunction(Globals.credentials, baseVPCDiscovery);
+
+    // start of the legacy AWS SDK V2 creds support
+    // TODO: remove it in case serverless will add V3 support
+    try {
+      await this.lambdaFunction.ec2Wrapper.getVpcs();
+    } catch (error) {
+      if (error.message.includes("Could not load credentials from any providers")) {
+        Globals.credentials = this.serverless.providers.aws.getCredentials();
+        this.lambdaFunction = new LambdaFunction(Globals.credentials, baseVPCDiscovery);
+      }
+    }
+  }
+
+  /**
+   * Init AWS credentials based on sls `provider.profile`
+   */
+  public async initSLSCredentials (): Promise<void> {
+    const slsProfile = Globals.options["aws-profile"] || Globals.serverless.service.provider.profile;
+    Globals.credentials = slsProfile ? await Globals.getProfileCreds(slsProfile) : null;
+  }
+
+  /**
+   * Init AWS current region based on Node options
+   */
+  public async initAWSRegion (): Promise<void> {
+    try {
+      Globals.currentRegion = await loadConfig(NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS)();
+    } catch (err) {
+      Logging.logInfo("Node region was not found.");
+    }
   }
 
   /**

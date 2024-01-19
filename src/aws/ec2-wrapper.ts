@@ -14,8 +14,23 @@ export class EC2Wrapper {
   constructor (credentials: any) {
     this.ec2 = new EC2Client([{
       credentials,
+      region: Globals.getRegion(),
       retryStrategy: Globals.getRetryStrategy()
     }]);
+  }
+
+  /**
+   *  Returns the promise that contains the vpc-id
+   * @returns {Promise.<Vpc[]>}
+   */
+  public async getVpcs (): Promise<Vpc[]> {
+    return await getAWSPagedResults(
+      this.ec2,
+      "Vpcs",
+      "NextToken",
+      "NextToken",
+      new DescribeVpcsCommand({})
+    );
   }
 
   /**

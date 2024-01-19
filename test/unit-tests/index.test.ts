@@ -41,6 +41,7 @@ const vpcId = "vpc-test";
 Globals.options = {
   stage: "test"
 };
+Globals.currentRegion = Globals.defaultRegion;
 
 // This will create a mock plugin to be used for testing
 const testFuncName = "funcTest";
@@ -66,7 +67,7 @@ const constructPlugin = (vpcConfig) => {
     providers: {
       aws: {
         getRegion: () => "us-moon-1",
-        getCredentials: () => new Object()
+        getCredentials: () => {}
       }
     },
     configSchemaHandler: {
@@ -76,7 +77,7 @@ const constructPlugin = (vpcConfig) => {
       }
     }
   };
-  return new VPCPlugin(serverless, null);
+  return new VPCPlugin(serverless, { });
 };
 
 const initMessage = "[Info] Updating VPC config...";
@@ -103,7 +104,7 @@ describe("Given a vpc,", () => {
       securityGroups: securityGroups
     });
     plugin.validateCustomVPCDiscoveryConfig();
-    plugin.initResources();
+    await plugin.initResources();
 
     const expectedResult = {
       funcTest: {
@@ -123,7 +124,7 @@ describe("Given a vpc,", () => {
     EC2ClientMock.on(DescribeVpcsCommand).resolves(emptyData);
 
     const plugin = constructPlugin({});
-    plugin.initResources();
+    await plugin.initResources();
 
     const funcVPCDiscovery: VPCDiscovery = {
       vpcName: "test",
@@ -132,8 +133,8 @@ describe("Given a vpc,", () => {
 
     return await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = `VPC with tag key 'Name' and tag value '${funcVPCDiscovery.vpcName}' does not exist`;
-      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
-      expect(consoleOutput[1]).to.contain(expectedMessage);
+      expect(consoleOutput[1]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(consoleOutput[2]).to.contain(expectedMessage);
     });
   });
 
@@ -144,14 +145,14 @@ describe("Given a vpc,", () => {
 
 describe("Given valid inputs for Subnets and Security Groups ", () => {
   let plugin;
-  beforeEach(() => {
+  beforeEach(async () => {
     const EC2ClientMock = mockClient(EC2Client);
     EC2ClientMock.on(DescribeVpcsCommand).resolves(testData);
     EC2ClientMock.on(DescribeSubnetsCommand).resolves(testData);
     EC2ClientMock.on(DescribeSecurityGroupsCommand).resolves(testData);
 
     plugin = constructPlugin({});
-    plugin.initResources();
+    await plugin.initResources();
   });
 
   it("without wildcards", async () => {
@@ -199,13 +200,13 @@ describe("Given invalid input for ", () => {
     EC2ClientMock.on(DescribeSecurityGroupsCommand).resolves(testData);
 
     const plugin = constructPlugin({});
-    plugin.initResources();
+    await plugin.initResources();
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = `Subnets with vpc id '${vpcId}', tag key 'Name' and tag values '${funcVPCDiscovery.subnets[0].tagValues}' do not exist`;
-      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
-      expect(consoleOutput[1]).to.equal(foundFuncMessage);
-      expect(consoleOutput[2]).to.contain(expectedMessage);
+      expect(consoleOutput[1]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(consoleOutput[2]).to.equal(foundFuncMessage);
+      expect(consoleOutput[3]).to.contain(expectedMessage);
     });
   });
 
@@ -216,13 +217,13 @@ describe("Given invalid input for ", () => {
     EC2ClientMock.on(DescribeSecurityGroupsCommand).resolves(emptyData);
 
     const plugin = constructPlugin({});
-    plugin.initResources();
+    await plugin.initResources();
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = `Security groups with vpc id '${vpcId}', names '${securityGroups[0].names[0]}' do not exist`;
-      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
-      expect(consoleOutput[1]).to.equal(foundFuncMessage);
-      expect(consoleOutput[2]).to.contain(expectedMessage);
+      expect(consoleOutput[1]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(consoleOutput[2]).to.equal(foundFuncMessage);
+      expect(consoleOutput[3]).to.contain(expectedMessage);
     });
   });
 
@@ -246,13 +247,13 @@ describe("Given input missing in AWS for ", () => {
       securityGroups: [{ names: ["test_group_*"] }]
     };
     const plugin = constructPlugin({});
-    plugin.initResources();
+    await plugin.initResources();
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = `Subnets with vpc id '${vpcId}', tag key 'Name' and tag values 'missing_subnet' do not exist.`;
-      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
-      expect(consoleOutput[1]).to.equal(foundFuncMessage);
-      expect(consoleOutput[2]).to.contain(expectedMessage);
+      expect(consoleOutput[1]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(consoleOutput[2]).to.equal(foundFuncMessage);
+      expect(consoleOutput[3]).to.contain(expectedMessage);
     });
   });
 
@@ -264,13 +265,13 @@ describe("Given input missing in AWS for ", () => {
     };
 
     const plugin = constructPlugin({});
-    plugin.initResources();
+    await plugin.initResources();
 
     await plugin.lambdaFunction.getFuncVPC("test", funcVPCDiscovery).then(() => {
       const expectedMessage = "Security groups do not exist for the names";
-      expect(consoleOutput[0]).to.equal(initFuncMessage.replace(testFuncName, "test"));
-      expect(consoleOutput[1]).to.equal(foundFuncMessage);
-      expect(consoleOutput[2]).to.contain(expectedMessage);
+      expect(consoleOutput[1]).to.equal(initFuncMessage.replace(testFuncName, "test"));
+      expect(consoleOutput[2]).to.equal(foundFuncMessage);
+      expect(consoleOutput[3]).to.contain(expectedMessage);
     });
   });
 
@@ -290,13 +291,13 @@ describe("Catching errors in updateVpcConfig ", () => {
       securityGroups: securityGroups
     });
     plugin.validateCustomVPCDiscoveryConfig();
-    plugin.initResources();
+    await plugin.initResources();
 
     await plugin.updateFunctionsVpcConfig().then(() => {
       const expectedErrorMessage = `VPC with tag key 'Name' and tag value '${vpc}' does not exist.`;
-      expect(consoleOutput[0]).to.equal(initMessage);
-      expect(consoleOutput[1]).to.equal(initFuncMessage);
-      expect(consoleOutput[2]).to.contain(expectedErrorMessage);
+      expect(consoleOutput[1]).to.equal(initMessage);
+      expect(consoleOutput[2]).to.equal(initFuncMessage);
+      expect(consoleOutput[3]).to.contain(expectedErrorMessage);
     });
   });
 
