@@ -185,7 +185,7 @@ To run integration tests, set an environment variable TEST\_VPC\_NAME to the VPC
 ```
 export AWS_PROFILE=your_profile
 export TEST_VPC_NAME=vpc_name
-npm build
+npm run build
 npm run integration-test
 ```
 

@@ -1,5 +1,6 @@
 import { ServerlessInstance, ServerlessOptions, ServerlessUtils } from "./types";
 import { ConfiguredRetryStrategy } from "@smithy/util-retry";
+import { fromIni } from "@aws-sdk/credential-providers";
 
 export default class Globals {
   public static pluginName = "Serverless VPC Discovery";
@@ -7,6 +8,20 @@ export default class Globals {
   public static serverless: ServerlessInstance;
   public static options: ServerlessOptions;
   public static v3Utils?: ServerlessUtils;
+
+  public static currentRegion: string;
+  public static credentials: any;
+
+  public static defaultRegion = "us-east-1";
+
+  public static getRegion () {
+    const slsRegion = Globals.options.region || Globals.serverless.service.provider.region;
+    return slsRegion || Globals.currentRegion || Globals.defaultRegion;
+  }
+
+  public static async getProfileCreds (profile: string) {
+    return await fromIni({ profile })();
+  }
 
   public static getRetryStrategy (attempts: number = 3, delay: number = 3000, backoff: number = 500) {
     return new ConfiguredRetryStrategy(
