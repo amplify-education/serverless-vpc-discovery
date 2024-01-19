@@ -20,7 +20,7 @@ export class EC2Wrapper {
   }
 
   /**
-   *  Returns the promise that contains the vpc-id
+   *  Returns the promise that contains the vpc list
    * @returns {Promise.<Vpc[]>}
    */
   public async getVpcs (): Promise<Vpc[]> {
