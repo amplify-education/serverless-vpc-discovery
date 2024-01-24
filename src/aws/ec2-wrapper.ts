@@ -24,7 +24,6 @@ export class EC2Wrapper {
    * @returns {Promise.<Vpc[]>}
    */
   public async getVpcs (): Promise<Vpc[]> {
-    console.log(await this.ec2.config.region());
     return await getAWSPagedResults(
       this.ec2,
       "Vpcs",
