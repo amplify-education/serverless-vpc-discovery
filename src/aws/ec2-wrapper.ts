@@ -12,11 +12,11 @@ export class EC2Wrapper {
   public ec2: EC2Client
 
   constructor (credentials: any) {
-    this.ec2 = new EC2Client([{
+    this.ec2 = new EC2Client({
       credentials,
       region: Globals.getRegion(),
       retryStrategy: Globals.getRetryStrategy()
-    }]);
+    });
   }
 
   /**
