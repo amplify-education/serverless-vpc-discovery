@@ -1,5 +1,7 @@
 # basic example
-service: test-sls-vpc-discovery-${env:RANDOM_STRING}
+service: svd-basic
+
+frameworkVersion: "4.4.11"
 
 provider:
   name: aws

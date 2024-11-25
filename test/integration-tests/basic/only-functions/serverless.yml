@@ -1,5 +1,7 @@
 # only functions setup example
-service: test-sls-only-functions-${env:RANDOM_STRING}
+service: svd-only-functions
+
+frameworkVersion: "4.4.11"
 
 provider:
   name: aws

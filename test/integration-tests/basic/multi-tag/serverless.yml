@@ -1,5 +1,7 @@
 # multi-tag example
-service: test-sls-multi-tag-${env:RANDOM_STRING}
+service: svd-multi-tag
+
+frameworkVersion: "4.4.11"
 
 provider:
   name: aws
