@@ -185,8 +185,8 @@ To run integration tests, set an environment variable TEST\_VPC\_NAME to the VPC
 ```
 export AWS_PROFILE=your_profile
 export TEST_VPC_NAME=vpc_name
-npm run build
-npm run integration-test
+npx npm run build
+npx npm run integration-test
 ```
 
 If there is an error build and install the node\_module inside the serverless-vpc-discovery folder:
