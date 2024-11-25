@@ -9,7 +9,7 @@ import {
 import Globals from "../globals";
 
 export class EC2Wrapper {
-  public ec2: EC2Client
+  public ec2: EC2Client;
 
   constructor (credentials: any) {
     this.ec2 = new EC2Client({
