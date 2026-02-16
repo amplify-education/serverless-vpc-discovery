@@ -61,7 +61,7 @@
     "aws-sdk-client-mock": "^4.1.0",
     "chai": "^6.2.2",
     "chai-spies": "^1.1.0",
-    "eslint": "^8.57.0",
+    "eslint": "^8.57.1",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-n": "^16.0.0",
