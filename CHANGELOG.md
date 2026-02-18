@@ -5,18 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [7.0.0] - 2026-02-18
+
+### Changed
+
+- Dropped Node 16.x support
+- Updated dependencies and fixed compatibility. Thank you @throberto ([#88](https://github.com/amplify-education/serverless-vpc-discovery/pull/88))
+
 ## [6.0.0] - 2024-11-25
 
 ### Changed
 
-- Dropped Node14.x support
+- Dropped Node 14.x support
 - Updated packages
 
 ## [5.0.2] - 2024-01-19
 
 ### Fixed
 
-- Fixed EC2 client credentials initialization 
+- Fixed EC2 client credentials initialization
 
 ## [5.0.1] - 2024-01-19
 
@@ -42,8 +49,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- Add integration with serverless 3 logging
-- Change Github workflows to run tests both with sls 2 and 3
+- Added integration with serverless 3 logging
+- Changed GitHub workflows to run tests both with sls 2 and 3
 
 ## [4.0.1] - 2022-04-08
 
@@ -55,7 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- Added compability with serverless 3
+- Added compatibility with serverless 3
 
 ## [3.1.2] - 2021-09-01
 
@@ -73,7 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- Dropped support of node versions < 12
+- Dropped support for Node versions < 12
 - Replaced Travis pipeline items with GitHub workflow
 
 ## [3.0.0] - 2020-12-24
@@ -91,7 +98,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- Allow usage of wildcards in subnet and security group names. Thank you @RLRabinowitz ([#41](https://github.com/amplify-education/serverless-vpc-discovery/pull/41))
+- Allowed usage of wildcards in subnet and security group names. Thank you @RLRabinowitz ([#41](https://github.com/amplify-education/serverless-vpc-discovery/pull/41))
 
 ## [2.2.1] - 2020-12-02
 
@@ -104,7 +111,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - Set `custom.vpcDiscovery` optional.
-- Update travis config for github release tagging
+- Updated Travis config for GitHub release tagging
 
 ## [2.1.0] - 2020-11-17
 
@@ -123,13 +130,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- The code rewritten to TypeScript. Added improvements. Updated travis config, lint and test scripts.
+- Rewrote code to TypeScript. Added improvements. Updated Travis config, lint, and test scripts.
 
 ## [1.0.13] - 2018-10-10
 
 ### Added
 
-- Added our own configuration for AWS SDK's built in retry mechanism, increasing it from 3 retries to 20 so that this plugin is more easily used in an automated environment.
+- Added our own configuration for AWS SDK's built-in retry mechanism, increasing it from 3 retries to 20 so that this plugin is more easily used in an automated environment.
 
 ## [1.0.12] - 2018-08-01
 

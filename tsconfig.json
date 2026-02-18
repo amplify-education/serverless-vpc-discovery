@@ -3,7 +3,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "rootDir": ".",
-    "target": "es6",
+    "target": "ES2022",
     "sourceMap": false,
     "outDir": "dist",
     "types": [
