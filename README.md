@@ -183,6 +183,7 @@ All tests should pass.
 To run integration tests, set an environment variable TEST\_VPC\_NAME to the VPC you will be testing for. Then,
 
 ```
+export SERVERLESS_LICENSE_KEY=<license_key>
 export AWS_PROFILE=your_profile
 export TEST_VPC_NAME=vpc_name
 npx npm run build
