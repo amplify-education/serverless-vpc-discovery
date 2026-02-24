@@ -12,12 +12,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Dropped Node 20.x support
 - Updated packages
 
-## [7.0.0] - 2026-02-20
-
-### Changed
-
-- Dropped Node 18.x support
-- Updated packages
 
 ## [7.0.0] - 2026-02-18
 
