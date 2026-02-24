@@ -126,7 +126,7 @@ class VPCPlugin {
   public async initAWSRegion (): Promise<void> {
     try {
       Globals.currentRegion = await loadConfig(NODE_REGION_CONFIG_OPTIONS, NODE_REGION_CONFIG_FILE_OPTIONS)();
-    } catch (err) {
+    } catch {
       Logging.logInfo("Node region was not found.");
     }
   }
