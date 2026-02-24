@@ -3,7 +3,7 @@ import { VPCDiscovery, VPC } from "../types";
 import { isObjectEmpty } from "../utils";
 import { validateVPCDiscoveryConfig } from "../validation";
 import Logging from "../logging";
-import { Md5 } from "ts-md5";
+import { createHash } from "crypto";
 
 export class LambdaFunction {
   public ec2Wrapper: EC2Wrapper;
@@ -102,7 +102,7 @@ export class LambdaFunction {
    * @returns {Promise<object>}
    */
   private async getVPCSubnets (vpcId: string, tagKey: string, tagValues: string[]) {
-    const hash = Md5.hashStr(vpcId + tagKey + tagValues.join());
+    const hash = createHash("md5").update(vpcId + tagKey + tagValues.join()).digest("hex");
     if (!this.subnetsIdsCache[hash]) {
       this.subnetsIdsCache[hash] = await this.ec2Wrapper.getSubnetIds(vpcId, tagKey, tagValues);
     }
@@ -114,7 +114,7 @@ export class LambdaFunction {
    * @returns {Promise<object>}
    */
   private async getVPCSecurityGroups (vpcId: string, names: string[], tagKey: string, tagValues: string[]) {
-    const hash = Md5.hashStr(vpcId + (names || []).join() + tagKey + (tagValues || []).join());
+    const hash = createHash("md5").update(vpcId + (names || []).join() + tagKey + (tagValues || []).join()).digest("hex");
     if (!this.SGIdsCache[hash]) {
       this.SGIdsCache[hash] = await this.ec2Wrapper.getSecurityGroupIds(vpcId, names, tagKey, tagValues);
     }
